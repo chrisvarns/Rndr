@@ -80,6 +80,9 @@ int Engine::Init()
 		return 3;
 	}
 
+	glewExperimental = GL_TRUE;
+	glewInit();
+
 	SDL_GL_SetSwapInterval(1);
 
 	return 0;
@@ -134,7 +137,9 @@ int Engine::Execute()
 		glClear(GL_COLOR_BUFFER_BIT);
 		SDL_GL_SwapWindow(m_SdlWindow);
 		SDL_Delay(1000);
-		//glGenBuffers();
+		GLuint buffer;
+		glGenBuffers(1, &buffer);
+		SDL_Log("Returned %d.", buffer);
 		//glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_BYTE, indices);
 	}
 	return 0;

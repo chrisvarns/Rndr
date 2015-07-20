@@ -2,8 +2,8 @@
 
 #include <string>
 #include <vector>
-
 #include <SDL.h>
+#include "GL\glew.h"
 
 using namespace std;
 
