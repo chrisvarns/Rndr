@@ -1,7 +1,11 @@
-#include "main.h"
+#include "Globals.h"
+#include "Engine.h"
+
 #include "stdio.h"
 
-int main(int argc, char* argv[])
+int main(int argc, char** argv)
 {
-	return 0;
+	Engine* engine = new Engine(argc, argv);
+	if (engine->Init()) return gs_Fail;
+	return engine->Execute();
 }
