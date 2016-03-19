@@ -65,82 +65,15 @@ int Engine::Init()
 		return 3;
 	}
 
-	// Initial context, so we can query the server.
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 4);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
-	m_SdlGlContext = SDL_GL_CreateContext(m_SdlWindow);
-
-	if (!m_SdlGlContext) {
-		SDL_Log("Unable to create GL context: %s", SDL_GetError());
-		return 3;
-	}
-
-	glewExperimental = GL_TRUE;
-	glewInit();
-
-	SDL_GL_SetSwapInterval(1);
-
 	return 0;
 }
 
 Engine::~Engine()
 {
-	if (m_SdlGlContext)		SDL_GL_DeleteContext(m_SdlGlContext);
 	if (m_SdlWindow)		SDL_DestroyWindow(m_SdlWindow);
 }
 
 int Engine::Execute()
 {
-	int loopCounter = 0;
-
-	char indices[] = {
-		0, 1, 2
-	};
-
-	float vertPos[] = {
-		0.0f, 0.0f,
-		1.0f, 0.0f,
-		1.0f, 1.1f,
-	};
-
-	float vertCol[] = {
-		1.0f, 0.0f, 0.0f,
-		0.0f, 1.0f, 0.0f,
-		0.0f, 0.0f, 1.0f,
-	};
-	
-	string vShader =
-		"vec4 vertPos;"
-
-		"main() {"
-		"	gl_Position = vertPos;"
-		"}";
-
-	string fShader =
-		"vec4 vertCol;"
-		"void main() {"
-		"	gl_FragColor = vertCol;"
-		"}";
-
-	while (true)
-	{
-		glClearColor((float)200 / 255, (float)162 / 255, (float)200 / 255, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
-		SDL_GL_SwapWindow(m_SdlWindow);
-		SDL_Delay(1000);
-		glClearColor((float)64 / 255, (float)224 / 255, (float)208 / 255, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
-		SDL_GL_SwapWindow(m_SdlWindow);
-		SDL_Delay(1000);
-		GLuint buffer;
-		glGenBuffers(1, &buffer);
-		SDL_Log("Returned %d.", buffer);
-		//glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_BYTE, indices);
-	}
 	return 0;
 }
