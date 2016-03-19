@@ -180,24 +180,20 @@ int Engine::Init()
 
 int Engine::Execute()
 {
-	UINT frameDelay = 100;
-	bool isRed = false;
-	FLOAT red[4] = { 1.f, 0.f, 0.f, 1.f };
-	FLOAT blue[4] = { 0.f, 0.f, 1.f, 1.f };
-	m_pD3dContext->ClearRenderTargetView(m_pBackBufferRTView, blue);
-	m_pSwapChain->Present(0, 0);
+	static UINT frameDelay = 100;
+	static bool isRed = false;
+	static FLOAT red[4] = { 1.f, 0.f, 0.f, 1.f };
+	static FLOAT blue[4] = { 0.f, 0.f, 1.f, 1.f };
 	
-	while (true)
+	if (frameDelay == 0)
 	{
-		if (frameDelay == 0)
-		{
-			frameDelay = 100;
+		frameDelay = 100;
 
-			m_pD3dContext->ClearRenderTargetView(m_pBackBufferRTView, isRed ? blue : red);
-			m_pSwapChain->Present(0, 0);
-			isRed = !isRed;
-		}
-		--frameDelay;
+		m_pD3dContext->ClearRenderTargetView(m_pBackBufferRTView, isRed ? blue : red);
+		m_pSwapChain->Present(0, 0);
+		isRed = !isRed;
 	}
+	--frameDelay;
+
 	return 0;
 }

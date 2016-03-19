@@ -6,5 +6,14 @@ int main(int argc, char** argv)
 {
 	Engine* engine = new Engine(argc, argv);
 	if (engine->Init()) return 1;
-	return engine->Execute();
+
+	while (true)
+	{
+		engine->Execute();
+
+		SDL_Event event;
+		while (SDL_PollEvent(&event))
+		{
+		}
+	}
 }
