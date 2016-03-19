@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 #include <SDL.h>
+#include <SDL_syswm.h>
+#include <d3d11.h>
 
 using namespace std;
 
@@ -20,8 +22,17 @@ private:
 	int		m_WindowWidth;
 	int		m_WindowHeight;
 
-	SDL_Window*		m_SdlWindow;
-	SDL_GLContext	m_SdlGlContext;
+	// SDL
+	SDL_Window*		m_pSdlWindow;
+	SDL_SysWMinfo	m_SdlWindowWMInfo;
+
+	// D3D
+	IDXGIAdapter1*			m_pAdapter;
+	IDXGISwapChain*			m_pSwapChain;
+	ID3D11Device*			m_pD3dDevice;
+	ID3D11DeviceContext*	m_pD3dContext;
+	ID3D11Texture2D*		m_pBackBufferRT;
+	ID3D11RenderTargetView*	m_pBackBufferRTView;
 
 	/// Statics
 private:
