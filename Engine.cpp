@@ -180,6 +180,39 @@ int Engine::Init()
 
 int Engine::Execute()
 {
+	while (true)
+	{
+		// Handle events first
+		if (HandleEvents()) break;
+
+		// Render a frame
+		DoFrame(1.f);
+	}
+
+	return 0;
+}
+
+int Engine::HandleEvents()
+{
+	SDL_Event event;
+	while (SDL_PollEvent(&event))
+	{
+		switch (event.type)
+		{
+		case SDL_QUIT:
+			SDL_Log("User quit");
+			return 1;
+			break;
+		default:
+			break;
+		}
+	}
+
+	return 0;
+}
+
+int Engine::DoFrame(FLOAT deltaTime)
+{
 	static UINT frameDelay = 100;
 	static bool isRed = false;
 	static FLOAT red[4] = { 1.f, 0.f, 0.f, 1.f };

@@ -38,6 +38,8 @@ private:
 private:
 	static vector<string> ms_Commands;
 	int ParseArgs();
+	int DoFrame(FLOAT DeltaTime);
+	int HandleEvents();
 
 };
 
