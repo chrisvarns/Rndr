@@ -212,7 +212,7 @@ int Engine::HandleEvents()
 		switch (event.type)
 		{
 		case SDL_QUIT:
-			SDL_Log("User quit");
+			SDL_Log("SDL_QUIT");
 			return 1;
 			break;
 		default:
