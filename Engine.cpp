@@ -84,13 +84,11 @@ int Engine::Init()
 	}
 
 	UniqueReleasePtr<IDXGIFactory1> pFactory;
-	IDXGIFactory1* pFactoryParam;
-	if (FAILED(CreateDXGIFactory1(__uuidof(IDXGIFactory1), (void**)&pFactoryParam)))
+	if (FAILED(CreateDXGIFactory1(__uuidof(IDXGIFactory1), (void**)pFactory.GetRef())))
 	{
 		SDL_Log("CreateDXGIFactory1 failed.");
 		return 5;
 	}
-	pFactory.reset(pFactoryParam);
 
 	IDXGIAdapter1* pTmpAdapter = NULL;
 	for (UINT i = 0; pFactory->EnumAdapters1(i, &pTmpAdapter) != DXGI_ERROR_NOT_FOUND; ++i)
@@ -138,38 +136,26 @@ int Engine::Init()
 #ifdef _DEBUG
 	creationFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
-
-	IDXGISwapChain* pTmpSwapChain = NULL;
-	ID3D11Device* pTmpD3dDevice = NULL;
-	ID3D11DeviceContext* pTmpD3dContext = NULL;
 	if (FAILED(D3D11CreateDeviceAndSwapChain(
 		m_pAdapter.get(), D3D_DRIVER_TYPE_UNKNOWN, NULL, creationFlags,
 		featureLevels, numFeatureLevels, D3D11_SDK_VERSION, &swapChainDesc,
-		&pTmpSwapChain, &pTmpD3dDevice, &featureLevel, &pTmpD3dContext)))
+		m_pSwapChain.GetRef(), m_pD3dDevice.GetRef(), &featureLevel, m_pD3dContext.GetRef())))
 	{
 		SDL_Log("D3D11CreateDeviceAndSwapChain failed.");
 		return 7;
 	}
-	m_pSwapChain.reset(pTmpSwapChain);
-	m_pD3dDevice.reset(pTmpD3dDevice);
-	m_pD3dContext.reset(pTmpD3dContext);
 	
-	ID3D11Texture2D* pTmpBackBufferRT = NULL;
-	if (FAILED(m_pSwapChain->GetBuffer(0, __uuidof(pTmpBackBufferRT), (void**)&pTmpBackBufferRT)))
+	if (FAILED(m_pSwapChain->GetBuffer(0, __uuidof(m_pBackBufferRT.get()), (void**)m_pBackBufferRT.GetRef())))
 	{
 		SDL_Log("Failed to get backbuffer from swapchain.");
 		return 8;
 	}
-	m_pBackBufferRT.reset(pTmpBackBufferRT);
 
-	ID3D11RenderTargetView* pTmpBackBufferRTView = NULL;
-	auto result = m_pD3dDevice->CreateRenderTargetView(m_pBackBufferRT.get(), NULL, &pTmpBackBufferRTView);
-	if (FAILED(result))
+	if (FAILED(m_pD3dDevice->CreateRenderTargetView(m_pBackBufferRT.get(), NULL, m_pBackBufferRTView.GetRef())))
 	{
 		SDL_Log("CreateRenderTargetView failed.");
 		return 9;
 	}
-	m_pBackBufferRTView.reset(pTmpBackBufferRTView);
 
 	ID3D11RenderTargetView* backBufferRTView[] = { m_pBackBufferRTView.get() };
 	m_pD3dContext->OMSetRenderTargets(1, &backBufferRTView[0], NULL);

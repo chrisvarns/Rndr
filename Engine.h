@@ -11,11 +11,15 @@ template <typename T>
 class UniqueReleasePtr : public std::unique_ptr<T, void(*)(T* ptr)>
 {
 public:
-	UniqueReleasePtr() : std::unique_ptr<T, void(*)(T* ptr)>(nullptr, [](T* ptr)
-	{
-		ptr->Release();
-	}) {};
-	UniqueReleasePtr(std::nullptr_t, void(deleter)(T* ptr)) : std::unique_ptr<T, void(*)(T* ptr)>(nullptr, deleter) {};
+
+	// Default constructor, sets up Release destructor
+	UniqueReleasePtr() : std::unique_ptr<T, void(*)(T* ptr)>(nullptr, [](T* ptr){ ptr->Release(); }) {};
+
+	// Constructor taking a specific deleter function to be called on destruction
+	UniqueReleasePtr(void(deleter)(T* ptr)) : std::unique_ptr<T, void(*)(T* ptr)>(nullptr, deleter) {};
+
+	// Returns a pointer to the internal pointer storage.
+	T** GetRef() { return reinterpret_cast<T**>(&_Mypair._Get_second()); }
 };
 
 class Engine
@@ -34,10 +38,7 @@ private:
 	int		m_WindowHeight;
 
 	// SDL
-	UniqueReleasePtr<SDL_Window> m_pSdlWindow = UniqueReleasePtr<SDL_Window>(nullptr, [](SDL_Window* window)
-	{
-		SDL_DestroyWindow(window);
-	});
+	UniqueReleasePtr<SDL_Window> m_pSdlWindow = UniqueReleasePtr<SDL_Window>([](SDL_Window* window) { SDL_DestroyWindow(window); });
 	SDL_SysWMinfo m_SdlWindowWMInfo;
 
 	// D3D
@@ -48,7 +49,6 @@ private:
 	UniqueReleasePtr<ID3D11Texture2D>			m_pBackBufferRT;
 	UniqueReleasePtr<ID3D11RenderTargetView>	m_pBackBufferRTView;
 
-private:
 	static std::vector<std::string> ms_Commands;
 	int ParseArgs();
 
