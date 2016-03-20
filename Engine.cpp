@@ -185,8 +185,11 @@ int Engine::Execute()
 		// Handle events first
 		if (HandleEvents()) break;
 
-		// Render a frame
-		DoFrame(1.f);
+		// Update state
+		Update(1.f);
+
+		// Render
+		Render();
 	}
 
 	return 0;
@@ -211,7 +214,12 @@ int Engine::HandleEvents()
 	return 0;
 }
 
-int Engine::DoFrame(FLOAT deltaTime)
+int Engine::Update(FLOAT deltaTime)
+{
+	return 0;
+}
+
+int Engine::Render()
 {
 	static UINT frameDelay = 100;
 	static bool isRed = false;
