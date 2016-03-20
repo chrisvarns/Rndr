@@ -2,11 +2,21 @@
 
 #include <string>
 #include <vector>
+#include <memory>
 #include <SDL.h>
 #include <SDL_syswm.h>
 #include <d3d11.h>
 
-using namespace std;
+template <typename T>
+class UniqueReleasePtr : public std::unique_ptr<T, void(*)(T* ptr)>
+{
+public:
+	UniqueReleasePtr() : std::unique_ptr<T, void(*)(T* ptr)>(nullptr, [](T* ptr)
+	{
+		ptr->Release();
+	}) {};
+	UniqueReleasePtr(std::nullptr_t, void(deleter)(T* ptr)) : std::unique_ptr<T, void(*)(T* ptr)>(nullptr, deleter) {};
+};
 
 class Engine
 {
@@ -15,6 +25,7 @@ public:
 	~Engine();
 	int Init();
 	int Execute();
+	int Release();
 
 private:
 	int		m_NumCmdLineArgs;
@@ -23,25 +34,26 @@ private:
 	int		m_WindowHeight;
 
 	// SDL
-	SDL_Window*		m_pSdlWindow;
-	SDL_SysWMinfo	m_SdlWindowWMInfo;
+	UniqueReleasePtr<SDL_Window> m_pSdlWindow = UniqueReleasePtr<SDL_Window>(nullptr, [](SDL_Window* window)
+	{
+		SDL_DestroyWindow(window);
+	});
+	SDL_SysWMinfo m_SdlWindowWMInfo;
 
 	// D3D
-	IDXGIAdapter1*			m_pAdapter;
-	IDXGISwapChain*			m_pSwapChain;
-	ID3D11Device*			m_pD3dDevice;
-	ID3D11DeviceContext*	m_pD3dContext;
-	ID3D11Texture2D*		m_pBackBufferRT;
-	ID3D11RenderTargetView*	m_pBackBufferRTView;
+	UniqueReleasePtr<IDXGIAdapter1>				m_pAdapter;
+	UniqueReleasePtr<IDXGISwapChain>			m_pSwapChain;
+	UniqueReleasePtr<ID3D11Device>				m_pD3dDevice;
+	UniqueReleasePtr<ID3D11DeviceContext>		m_pD3dContext;
+	UniqueReleasePtr<ID3D11Texture2D>			m_pBackBufferRT;
+	UniqueReleasePtr<ID3D11RenderTargetView>	m_pBackBufferRTView;
 
-	/// Statics
 private:
-	static vector<string> ms_Commands;
+	static std::vector<std::string> ms_Commands;
 	int ParseArgs();
 
 	int HandleEvents();
 	int Update(FLOAT DeltaTime);
 	int Render();
-
 };
 

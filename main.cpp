@@ -1,11 +1,14 @@
 #include "Engine.h"
-
-#include "stdio.h"
+#include <memory>
 
 int main(int argc, char** argv)
 {
-	Engine* engine = new Engine(argc, argv);
-	if (engine->Init()) return 1;
+	int ret = 0;
+	{
+		std::unique_ptr<Engine> engine(new Engine(argc, argv));
+		if (engine->Init()) return 1;
 
-	return engine->Execute();
+		ret = engine->Execute();
+	}
+	return ret;
 }

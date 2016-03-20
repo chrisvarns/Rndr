@@ -14,24 +14,17 @@ Engine::Engine(int argc, char** argv)
 	, m_CmdLineArgs(argv)
 	, m_WindowWidth(1280)
 	, m_WindowHeight(720)
-	, m_pAdapter(NULL)
-	, m_pD3dDevice(NULL)
-	, m_pD3dContext(NULL)
 {
 }
 
 Engine::~Engine()
 {
-	// Release D3D objects in reverse order
-	if (m_pBackBufferRTView)	m_pBackBufferRTView->Release();
-	if (m_pBackBufferRT)		m_pBackBufferRT->Release();
-	if (m_pD3dContext)			m_pD3dContext->Release();
-	if (m_pD3dDevice)			m_pD3dDevice->Release();
-	if (m_pSwapChain)			m_pSwapChain->Release();
-	if (m_pAdapter)				m_pAdapter->Release();
+	Release();
+}
 
-	// Release any SDL objects
-	if (m_pSdlWindow)			SDL_DestroyWindow(m_pSdlWindow);
+int Engine::Release()
+{
+	return 0;
 }
 
 int Engine::ParseArgs()
@@ -73,10 +66,10 @@ int Engine::Init()
 		return 2;
 	}
 
-	m_pSdlWindow = SDL_CreateWindow(
+	m_pSdlWindow.reset(SDL_CreateWindow(
 		"Rndr",
 		SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-		m_WindowWidth, m_WindowHeight, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
+		m_WindowWidth, m_WindowHeight, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE));
 
 	if (!m_pSdlWindow) {
 		SDL_Log("Unable to create SDL Window: %s", SDL_GetError());
@@ -84,18 +77,20 @@ int Engine::Init()
 	}
 
 	ZeroMemory(&m_SdlWindowWMInfo, sizeof(SDL_SysWMinfo));
-	if (!SDL_GetWindowWMInfo(m_pSdlWindow, &m_SdlWindowWMInfo))
+	if (!SDL_GetWindowWMInfo(m_pSdlWindow.get(), &m_SdlWindowWMInfo))
 	{
 		SDL_Log("SDL_GetWindowWMInfo failed.");
 		return 4;
 	}
 
-	IDXGIFactory1* pFactory = NULL;
-	if (FAILED(CreateDXGIFactory1(__uuidof(IDXGIFactory), reinterpret_cast<void**>(&pFactory))))
+	UniqueReleasePtr<IDXGIFactory1> pFactory;
+	IDXGIFactory1* pFactoryParam;
+	if (FAILED(CreateDXGIFactory1(__uuidof(IDXGIFactory1), (void**)&pFactoryParam)))
 	{
 		SDL_Log("CreateDXGIFactory1 failed.");
 		return 5;
 	}
+	pFactory.reset(pFactoryParam);
 
 	IDXGIAdapter1* pTmpAdapter = NULL;
 	for (UINT i = 0; pFactory->EnumAdapters1(i, &pTmpAdapter) != DXGI_ERROR_NOT_FOUND; ++i)
@@ -106,13 +101,12 @@ int Engine::Init()
 		// Get the nvidia adapter
 		if (adapterDesc.VendorId == 4318)
 		{
-			m_pAdapter = pTmpAdapter;
+			m_pAdapter.reset(pTmpAdapter);
 			break;
 		}
+		pTmpAdapter->Release();
 	}
-	pFactory->Release();
-	pFactory = NULL;
-	if (m_pAdapter == NULL)
+	if (!m_pAdapter)
 	{
 		SDL_Log("Failed to find NVidia device!!.");
 		return 6;
@@ -133,37 +127,52 @@ int Engine::Init()
 	swapChainDesc.SampleDesc.Count = 1;
 	swapChainDesc.SampleDesc.Quality = 0;
 	D3D_FEATURE_LEVEL featureLevel;
-	D3D_FEATURE_LEVEL featureLevels[] = { D3D_FEATURE_LEVEL_11_0 };
+	D3D_FEATURE_LEVEL featureLevels[] = {
+		D3D_FEATURE_LEVEL_11_1,
+		D3D_FEATURE_LEVEL_11_0,
+		D3D_FEATURE_LEVEL_10_1,
+		D3D_FEATURE_LEVEL_10_0
+	};
 	UINT numFeatureLevels = ARRAYSIZE(featureLevels);
 	UINT creationFlags = 0;
 #ifdef _DEBUG
 	creationFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
 
+	IDXGISwapChain* pTmpSwapChain = NULL;
+	ID3D11Device* pTmpD3dDevice = NULL;
+	ID3D11DeviceContext* pTmpD3dContext = NULL;
 	if (FAILED(D3D11CreateDeviceAndSwapChain(
-		m_pAdapter, D3D_DRIVER_TYPE_UNKNOWN, NULL, creationFlags,
+		m_pAdapter.get(), D3D_DRIVER_TYPE_UNKNOWN, NULL, creationFlags,
 		featureLevels, numFeatureLevels, D3D11_SDK_VERSION, &swapChainDesc,
-		&m_pSwapChain, &m_pD3dDevice, &featureLevel, &m_pD3dContext)))
+		&pTmpSwapChain, &pTmpD3dDevice, &featureLevel, &pTmpD3dContext)))
 	{
 		SDL_Log("D3D11CreateDeviceAndSwapChain failed.");
 		return 7;
 	}
+	m_pSwapChain.reset(pTmpSwapChain);
+	m_pD3dDevice.reset(pTmpD3dDevice);
+	m_pD3dContext.reset(pTmpD3dContext);
 	
-	if (FAILED(m_pSwapChain->GetBuffer(0, __uuidof(m_pBackBufferRT), (void**)&m_pBackBufferRT)))
+	ID3D11Texture2D* pTmpBackBufferRT = NULL;
+	if (FAILED(m_pSwapChain->GetBuffer(0, __uuidof(pTmpBackBufferRT), (void**)&pTmpBackBufferRT)))
 	{
 		SDL_Log("Failed to get backbuffer from swapchain.");
 		return 8;
 	}
+	m_pBackBufferRT.reset(pTmpBackBufferRT);
 
-	auto result = m_pD3dDevice->CreateRenderTargetView(m_pBackBufferRT, NULL, &m_pBackBufferRTView);
-	if (m_pBackBufferRT) m_pBackBufferRT->Release();
+	ID3D11RenderTargetView* pTmpBackBufferRTView = NULL;
+	auto result = m_pD3dDevice->CreateRenderTargetView(m_pBackBufferRT.get(), NULL, &pTmpBackBufferRTView);
 	if (FAILED(result))
 	{
 		SDL_Log("CreateRenderTargetView failed.");
 		return 9;
 	}
+	m_pBackBufferRTView.reset(pTmpBackBufferRTView);
 
-	m_pD3dContext->OMSetRenderTargets(1, &m_pBackBufferRTView, NULL);
+	ID3D11RenderTargetView* backBufferRTView[] = { m_pBackBufferRTView.get() };
+	m_pD3dContext->OMSetRenderTargets(1, &backBufferRTView[0], NULL);
 
 	D3D11_VIEWPORT viewport;
 	ZeroMemory(&viewport, sizeof(viewport));
@@ -230,7 +239,7 @@ int Engine::Render()
 	{
 		frameDelay = 100;
 
-		m_pD3dContext->ClearRenderTargetView(m_pBackBufferRTView, isRed ? blue : red);
+		m_pD3dContext->ClearRenderTargetView(m_pBackBufferRTView.get(), isRed ? blue : red);
 		m_pSwapChain->Present(0, 0);
 		isRed = !isRed;
 	}
