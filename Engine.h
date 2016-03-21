@@ -6,6 +6,13 @@
 #include <SDL.h>
 #include <SDL_syswm.h>
 #include <d3d11.h>
+#include <DirectXMath.h>
+
+struct Vertex
+{
+	DirectX::XMFLOAT3 pos;
+	//DirectX::XMFLOAT4 colour;
+};
 
 template <typename T>
 class UniqueReleasePtr : public std::unique_ptr<T, void(*)(T* ptr)>
@@ -28,6 +35,7 @@ public:
 	Engine(int argc, char** argv);
 	~Engine();
 	int Init();
+	int LoadContent();
 	int Execute();
 	int Release();
 

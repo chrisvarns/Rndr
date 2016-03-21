@@ -4,8 +4,16 @@
 #include <string>
 #include <sstream>
 #include <d3d11.h>
+#include <d3dcompiler.h>
 
 using namespace std;
+using namespace DirectX;
+
+Vertex Triangle[] = {
+	{ XMFLOAT3(0.5f, 0.5f, 0.5f)/*, XMFLOAT4(1.f, 0.f, 0.f, 1.f) */},
+	{ XMFLOAT3(0.5f, -0.5f, 0.5f)/*, XMFLOAT4(0.f, 1.f, 0.f, 1.f) */},
+	{ XMFLOAT3(-0.5f, -0.5f, 0.5f)/*, XMFLOAT4(0.f, 0.f, 1.f, 1.f) */}
+};
 
 vector<string> Engine::ms_Commands = { "xres", "yres", "scene" };
 
@@ -204,6 +212,82 @@ int Engine::HandleEvents()
 		default:
 			break;
 		}
+	}
+
+	return 0;
+}
+
+int Engine::LoadContent()
+{
+	////////////////////
+	// Create Buffer for Triangle
+	D3D11_BUFFER_DESC vertexDesc;
+	ZeroMemory(&vertexDesc, sizeof(vertexDesc));
+	vertexDesc.Usage = D3D11_USAGE_DEFAULT;
+	vertexDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	vertexDesc.ByteWidth = sizeof(Triangle);
+
+	D3D11_SUBRESOURCE_DATA resourceData;
+	ZeroMemory(&resourceData, sizeof(resourceData));
+	resourceData.pSysMem = Triangle;
+
+
+	UniqueReleasePtr<ID3D11Buffer> pVertexBuffer;
+	if (FAILED(m_pD3dDevice->CreateBuffer(&vertexDesc, &resourceData, pVertexBuffer.GetRef())))
+	{
+		SDL_Log("CreateBuffer failed");
+		return 1;
+	}
+
+	////////////////////
+	// Vertex Shader
+	DWORD shaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
+#if defined(DEBUG) || defined(_DEBUG)
+	shaderFlags |= D3DCOMPILE_DEBUG;
+#endif
+	UniqueReleasePtr<ID3DBlob> pVsBuffer;
+	UniqueReleasePtr<ID3DBlob> pTmpErrorBuffer;
+	if (FAILED(D3DCompileFromFile(L"sampleshader.fx", 0, 0, "VS_Main", "vs_5_0", shaderFlags, 0, pVsBuffer.GetRef(), pTmpErrorBuffer.GetRef())))
+	{
+		SDL_Log("D3DCompileFromFile (VS) failed");
+		if (pTmpErrorBuffer) SDL_Log(static_cast<char*>(pTmpErrorBuffer->GetBufferPointer()));
+		return 2;
+	}
+
+	UniqueReleasePtr<ID3D11VertexShader> pSolidColourVs;
+	if (FAILED(m_pD3dDevice->CreateVertexShader(pVsBuffer->GetBufferPointer(), pVsBuffer->GetBufferSize(), 0, pSolidColourVs.GetRef())))
+	{
+		SDL_Log("CreateVertexShader failed");
+		return 3;
+	}
+
+	D3D11_INPUT_ELEMENT_DESC vertexLayout[] =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0}
+	};
+	UniqueReleasePtr<ID3D11InputLayout> pInputLayout;
+	if (FAILED(m_pD3dDevice->CreateInputLayout(vertexLayout, ARRAYSIZE(vertexLayout), pVsBuffer->GetBufferPointer(), pVsBuffer->GetBufferSize(), pInputLayout.GetRef())))
+	{
+		SDL_Log("CreateInputLayout failed");
+		return 4;
+	}
+
+	////////////////////
+	// Pixel Shader
+	pTmpErrorBuffer.reset();
+	UniqueReleasePtr<ID3DBlob> pPsBuffer;
+	if (FAILED(D3DCompileFromFile(L"sampleShader.fx", 0, 0, "PS_MAIN", "ps_5_0", shaderFlags, 0, pPsBuffer.GetRef(), pTmpErrorBuffer.GetRef())))
+	{
+		SDL_Log("D3DCompileFromFile (PS) failed");
+		if (pTmpErrorBuffer) SDL_Log(static_cast<char*>(pTmpErrorBuffer->GetBufferPointer()));
+		return 5;
+	}
+
+	UniqueReleasePtr<ID3D11PixelShader> pSolidColourPs;
+	if (FAILED(m_pD3dDevice->CreatePixelShader(pPsBuffer->GetBufferPointer(), pPsBuffer->GetBufferSize(), 0, pSolidColourPs.GetRef())))
+	{
+		SDL_Log("CreatePixelShader failed");
+		return 6;
 	}
 
 	return 0;
