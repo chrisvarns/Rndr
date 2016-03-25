@@ -8,9 +8,9 @@
 #include <d3d11.h>
 #include <DirectXMath.h>
 
-struct Vertex
+struct VertexDesc
 {
-	DirectX::XMFLOAT3 pos;
+	DirectX::XMFLOAT3 Position;
 	//DirectX::XMFLOAT4 colour;
 };
 
@@ -40,10 +40,11 @@ public:
 	int Release();
 
 private:
-	int		m_NumCmdLineArgs;
-	char**	m_CmdLineArgs;
-	int		m_WindowWidth;
-	int		m_WindowHeight;
+	int				m_NumCmdLineArgs;
+	char**			m_CmdLineArgs;
+	int				m_WindowWidth;
+	int				m_WindowHeight;
+	std::string		m_ShaderDir;
 
 	// SDL
 	UniqueReleasePtr<SDL_Window> m_pSdlWindow = UniqueReleasePtr<SDL_Window>([](SDL_Window* window) { SDL_DestroyWindow(window); });
@@ -56,6 +57,12 @@ private:
 	UniqueReleasePtr<ID3D11DeviceContext>		m_pD3dContext;
 	UniqueReleasePtr<ID3D11Texture2D>			m_pBackBufferRT;
 	UniqueReleasePtr<ID3D11RenderTargetView>	m_pBackBufferRTView;
+
+	// Mesh stuff
+	UniqueReleasePtr<ID3D11Buffer>				m_pVertexBuffer;
+	UniqueReleasePtr<ID3D11InputLayout>			m_pInputLayout;
+	UniqueReleasePtr<ID3D11VertexShader>		m_pSolidColourVs;
+	UniqueReleasePtr<ID3D11PixelShader>			m_pSolidColourPs;
 
 	static std::vector<std::string> ms_Commands;
 	int ParseArgs();

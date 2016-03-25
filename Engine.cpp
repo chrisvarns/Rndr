@@ -9,13 +9,11 @@
 using namespace std;
 using namespace DirectX;
 
-Vertex Triangle[] = {
+VertexDesc Triangle[] = {
 	{ XMFLOAT3(0.5f, 0.5f, 0.5f)/*, XMFLOAT4(1.f, 0.f, 0.f, 1.f) */},
 	{ XMFLOAT3(0.5f, -0.5f, 0.5f)/*, XMFLOAT4(0.f, 1.f, 0.f, 1.f) */},
 	{ XMFLOAT3(-0.5f, -0.5f, 0.5f)/*, XMFLOAT4(0.f, 0.f, 1.f, 1.f) */}
 };
-
-vector<string> Engine::ms_Commands = { "xres", "yres", "scene" };
 
 Engine::Engine(int argc, char** argv)
 	: m_NumCmdLineArgs(argc)
@@ -46,9 +44,6 @@ int Engine::ParseArgs()
 		string arg = cmd.c_str() + mid + 1;
 		cmd.resize(mid);
 
-		if (std::find(ms_Commands.begin(), ms_Commands.end(), cmd) == ms_Commands.end())
-			return 1;
-
 		if (cmd == "xres")
 		{
 			m_WindowWidth = stoi(arg);
@@ -57,6 +52,11 @@ int Engine::ParseArgs()
 		{
 			m_WindowHeight = stoi(arg);
 		}
+		else if (cmd == "shaderDir")
+		{
+			m_ShaderDir = arg;
+		}
+		else return 1;
 	}
 	return 0;
 }
@@ -220,7 +220,7 @@ int Engine::HandleEvents()
 int Engine::LoadContent()
 {
 	////////////////////
-	// Create Buffer for Triangle
+	// Create vertex buffer for triangle
 	D3D11_BUFFER_DESC vertexDesc;
 	ZeroMemory(&vertexDesc, sizeof(vertexDesc));
 	vertexDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -231,9 +231,7 @@ int Engine::LoadContent()
 	ZeroMemory(&resourceData, sizeof(resourceData));
 	resourceData.pSysMem = Triangle;
 
-
-	UniqueReleasePtr<ID3D11Buffer> pVertexBuffer;
-	if (FAILED(m_pD3dDevice->CreateBuffer(&vertexDesc, &resourceData, pVertexBuffer.GetRef())))
+	if (FAILED(m_pD3dDevice->CreateBuffer(&vertexDesc, &resourceData, m_pVertexBuffer.GetRef())))
 	{
 		SDL_Log("CreateBuffer failed");
 		return 1;
@@ -247,15 +245,16 @@ int Engine::LoadContent()
 #endif
 	UniqueReleasePtr<ID3DBlob> pVsBuffer;
 	UniqueReleasePtr<ID3DBlob> pTmpErrorBuffer;
-	if (FAILED(D3DCompileFromFile(L"sampleshader.fx", 0, 0, "VS_Main", "vs_5_0", shaderFlags, 0, pVsBuffer.GetRef(), pTmpErrorBuffer.GetRef())))
+	std::wstring shaderDir(m_ShaderDir.cbegin(), m_ShaderDir.cend());
+	std::wstring vertexShaderFile = shaderDir + L"\\SolidColourVertex.hlsl";
+	if (FAILED(D3DCompileFromFile(vertexShaderFile.c_str(), 0, 0, "main", "vs_5_0", shaderFlags, 0, pVsBuffer.GetRef(), pTmpErrorBuffer.GetRef())))
 	{
 		SDL_Log("D3DCompileFromFile (VS) failed");
 		if (pTmpErrorBuffer) SDL_Log(static_cast<char*>(pTmpErrorBuffer->GetBufferPointer()));
 		return 2;
 	}
 
-	UniqueReleasePtr<ID3D11VertexShader> pSolidColourVs;
-	if (FAILED(m_pD3dDevice->CreateVertexShader(pVsBuffer->GetBufferPointer(), pVsBuffer->GetBufferSize(), 0, pSolidColourVs.GetRef())))
+	if (FAILED(m_pD3dDevice->CreateVertexShader(pVsBuffer->GetBufferPointer(), pVsBuffer->GetBufferSize(), 0, m_pSolidColourVs.GetRef())))
 	{
 		SDL_Log("CreateVertexShader failed");
 		return 3;
@@ -265,8 +264,7 @@ int Engine::LoadContent()
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0}
 	};
-	UniqueReleasePtr<ID3D11InputLayout> pInputLayout;
-	if (FAILED(m_pD3dDevice->CreateInputLayout(vertexLayout, ARRAYSIZE(vertexLayout), pVsBuffer->GetBufferPointer(), pVsBuffer->GetBufferSize(), pInputLayout.GetRef())))
+	if (FAILED(m_pD3dDevice->CreateInputLayout(vertexLayout, ARRAYSIZE(vertexLayout), pVsBuffer->GetBufferPointer(), pVsBuffer->GetBufferSize(), m_pInputLayout.GetRef())))
 	{
 		SDL_Log("CreateInputLayout failed");
 		return 4;
@@ -276,15 +274,15 @@ int Engine::LoadContent()
 	// Pixel Shader
 	pTmpErrorBuffer.reset();
 	UniqueReleasePtr<ID3DBlob> pPsBuffer;
-	if (FAILED(D3DCompileFromFile(L"sampleShader.fx", 0, 0, "PS_MAIN", "ps_5_0", shaderFlags, 0, pPsBuffer.GetRef(), pTmpErrorBuffer.GetRef())))
+	std::wstring pixelShaderFile = shaderDir + L"\\SolidColourPixel.hlsl";
+	if (FAILED(D3DCompileFromFile(pixelShaderFile.c_str(), 0, 0, "main", "ps_5_0", shaderFlags, 0, pPsBuffer.GetRef(), pTmpErrorBuffer.GetRef())))
 	{
 		SDL_Log("D3DCompileFromFile (PS) failed");
 		if (pTmpErrorBuffer) SDL_Log(static_cast<char*>(pTmpErrorBuffer->GetBufferPointer()));
 		return 5;
 	}
 
-	UniqueReleasePtr<ID3D11PixelShader> pSolidColourPs;
-	if (FAILED(m_pD3dDevice->CreatePixelShader(pPsBuffer->GetBufferPointer(), pPsBuffer->GetBufferSize(), 0, pSolidColourPs.GetRef())))
+	if (FAILED(m_pD3dDevice->CreatePixelShader(pPsBuffer->GetBufferPointer(), pPsBuffer->GetBufferSize(), 0, m_pSolidColourPs.GetRef())))
 	{
 		SDL_Log("CreatePixelShader failed");
 		return 6;
@@ -300,20 +298,20 @@ int Engine::Update(FLOAT deltaTime)
 
 int Engine::Render()
 {
-	static UINT frameDelay = 100;
-	static bool isRed = false;
-	static FLOAT red[4] = { 1.f, 0.f, 0.f, 1.f };
-	static FLOAT blue[4] = { 0.f, 0.f, 1.f, 1.f };
-	
-	if (frameDelay == 0)
-	{
-		frameDelay = 100;
+	FLOAT clearColor[4] = { 0.f, 0.f, 0.25f, 0.f };
+	m_pD3dContext->ClearRenderTargetView(m_pBackBufferRTView.get(), clearColor);
 
-		m_pD3dContext->ClearRenderTargetView(m_pBackBufferRTView.get(), isRed ? blue : red);
-		m_pSwapChain->Present(0, 0);
-		isRed = !isRed;
-	}
-	--frameDelay;
+	unsigned int stride = sizeof(VertexDesc);
+	unsigned int offset = 0;
+
+	m_pD3dContext->IASetInputLayout(m_pInputLayout.get());
+	m_pD3dContext->IASetVertexBuffers(0, 1, m_pVertexBuffer.GetRef(), &stride, &offset);
+	m_pD3dContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	m_pD3dContext->VSSetShader(m_pSolidColourVs.get(), 0, 0);
+	m_pD3dContext->PSSetShader(m_pSolidColourPs.get(), 0, 0);
+	m_pD3dContext->Draw(3, 0);
+
+	m_pSwapChain->Present(0, 0);
 
 	return 0;
 }
