@@ -1,8 +1,8 @@
 #include "Engine.h"
 #include <SDL.h>
-#include <SDL_syswm.h>
 #include <string>
 #include <sstream>
+#include <memory>
 #include <d3d11.h>
 #include <d3dcompiler.h>
 
@@ -243,28 +243,31 @@ int Engine::LoadContent()
 #if defined(DEBUG) || defined(_DEBUG)
 	shaderFlags |= D3DCOMPILE_DEBUG;
 #endif
-	UniqueReleasePtr<ID3DBlob> pVsBuffer;
-	UniqueReleasePtr<ID3DBlob> pTmpErrorBuffer;
-	std::wstring shaderDir(m_ShaderDir.cbegin(), m_ShaderDir.cend());
-	std::wstring vertexShaderFile = shaderDir + L"\\SolidColourVertex.hlsl";
-	if (FAILED(D3DCompileFromFile(vertexShaderFile.c_str(), 0, 0, "main", "vs_5_0", shaderFlags, 0, pVsBuffer.GetRef(), pTmpErrorBuffer.GetRef())))
+	SDL_RWops* vsFile = SDL_RWFromFile((std::string(SDL_GetBasePath()) + "\\SolidColourVertex.cso").c_str(), "rb");
+	if (vsFile == nullptr)
 	{
-		SDL_Log("D3DCompileFromFile (VS) failed");
-		if (pTmpErrorBuffer) SDL_Log(static_cast<char*>(pTmpErrorBuffer->GetBufferPointer()));
+		SDL_Log("SDL_RWFromFile failed");
 		return 2;
 	}
+	size_t vsDataSize = SDL_RWsize(vsFile);
+	UniqueFreePtr<void> vsData;
+	vsData.reset(malloc(vsDataSize));
+	SDL_RWread(vsFile, vsData.get(), vsDataSize, 1);
+	SDL_RWclose(vsFile);
 
-	if (FAILED(m_pD3dDevice->CreateVertexShader(pVsBuffer->GetBufferPointer(), pVsBuffer->GetBufferSize(), 0, m_pSolidColourVs.GetRef())))
+	if (FAILED(m_pD3dDevice->CreateVertexShader(vsData.get(), vsDataSize, 0, m_pSolidColourVs.GetRef())))
 	{
 		SDL_Log("CreateVertexShader failed");
 		return 3;
 	}
 
+	////////////////////
+	// Vertex input layout
 	D3D11_INPUT_ELEMENT_DESC vertexLayout[] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0}
 	};
-	if (FAILED(m_pD3dDevice->CreateInputLayout(vertexLayout, ARRAYSIZE(vertexLayout), pVsBuffer->GetBufferPointer(), pVsBuffer->GetBufferSize(), m_pInputLayout.GetRef())))
+	if (FAILED(m_pD3dDevice->CreateInputLayout(vertexLayout, ARRAYSIZE(vertexLayout), vsData.get(), vsDataSize, m_pInputLayout.GetRef())))
 	{
 		SDL_Log("CreateInputLayout failed");
 		return 4;
@@ -272,17 +275,19 @@ int Engine::LoadContent()
 
 	////////////////////
 	// Pixel Shader
-	pTmpErrorBuffer.reset();
-	UniqueReleasePtr<ID3DBlob> pPsBuffer;
-	std::wstring pixelShaderFile = shaderDir + L"\\SolidColourPixel.hlsl";
-	if (FAILED(D3DCompileFromFile(pixelShaderFile.c_str(), 0, 0, "main", "ps_5_0", shaderFlags, 0, pPsBuffer.GetRef(), pTmpErrorBuffer.GetRef())))
+	SDL_RWops* psFile = SDL_RWFromFile((std::string(SDL_GetBasePath()) + "\\SolidColourPixel.cso").c_str(), "rb");
+	if (psFile == nullptr)
 	{
-		SDL_Log("D3DCompileFromFile (PS) failed");
-		if (pTmpErrorBuffer) SDL_Log(static_cast<char*>(pTmpErrorBuffer->GetBufferPointer()));
+		SDL_Log("SDL_RWFromFile failed");
 		return 5;
 	}
+	size_t psDataSize = SDL_RWsize(psFile);
+	UniqueFreePtr<void> psData;
+	psData.reset(malloc(psDataSize));
+	SDL_RWread(psFile, psData.get(), psDataSize, 1);
+	SDL_RWclose(psFile);
 
-	if (FAILED(m_pD3dDevice->CreatePixelShader(pPsBuffer->GetBufferPointer(), pPsBuffer->GetBufferSize(), 0, m_pSolidColourPs.GetRef())))
+	if (FAILED(m_pD3dDevice->CreatePixelShader(psData.get(), psDataSize, 0, m_pSolidColourPs.GetRef())))
 	{
 		SDL_Log("CreatePixelShader failed");
 		return 6;

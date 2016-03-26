@@ -7,26 +7,12 @@
 #include <SDL_syswm.h>
 #include <d3d11.h>
 #include <DirectXMath.h>
+#include "UniquePtr.h"
 
 struct VertexDesc
 {
 	DirectX::XMFLOAT3 Position;
 	//DirectX::XMFLOAT4 colour;
-};
-
-template <typename T>
-class UniqueReleasePtr : public std::unique_ptr<T, void(*)(T* ptr)>
-{
-public:
-
-	// Default constructor, sets up Release destructor
-	UniqueReleasePtr() : std::unique_ptr<T, void(*)(T* ptr)>(nullptr, [](T* ptr){ ptr->Release(); }) {};
-
-	// Constructor taking a specific deleter function to be called on destruction
-	UniqueReleasePtr(void(deleter)(T* ptr)) : std::unique_ptr<T, void(*)(T* ptr)>(nullptr, deleter) {};
-
-	// Returns a pointer to the internal pointer storage.
-	T** GetRef() { return reinterpret_cast<T**>(&_Mypair._Get_second()); }
 };
 
 class Engine
@@ -47,7 +33,7 @@ private:
 	std::string		m_ShaderDir;
 
 	// SDL
-	UniqueReleasePtr<SDL_Window> m_pSdlWindow = UniqueReleasePtr<SDL_Window>([](SDL_Window* window) { SDL_DestroyWindow(window); });
+	UniquePtr<SDL_Window> m_pSdlWindow = UniquePtr<SDL_Window>([](SDL_Window* window) { SDL_DestroyWindow(window); });
 	SDL_SysWMinfo m_SdlWindowWMInfo;
 
 	// D3D
