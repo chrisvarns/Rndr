@@ -16,7 +16,8 @@ class UniqueReleasePtr : public UniquePtr<T>
 {
 public:
 	// Default constructor, sets up Release destructor
-	UniqueReleasePtr() : UniquePtr<T>([](T* ptr) { ptr->Release(); }) {};
+	UniqueReleasePtr() : UniquePtr<T>([](T* ptr) { ptr->Release(); }) {}
+	UniqueReleasePtr(T* ptr) : UniquePtr<T>([](T* ptr) { ptr->Release(); }) { reset(ptr); }
 };
 
 template <typename T>

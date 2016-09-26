@@ -99,22 +99,36 @@ int Engine::Init()
 	}
 
 	IDXGIAdapter1* pTmpAdapter = NULL;
-	for (UINT i = 0; pFactory->EnumAdapters1(i, &pTmpAdapter) != DXGI_ERROR_NOT_FOUND; ++i)
+	std::vector<UniqueReleasePtr<IDXGIAdapter1> > adapters;
+	UINT itr = 0;
+	while (pFactory->EnumAdapters1(itr++, &pTmpAdapter) != DXGI_ERROR_NOT_FOUND)
 	{
-		DXGI_ADAPTER_DESC1 adapterDesc;
-		pTmpAdapter->GetDesc1(&adapterDesc);
-
-		// Get the nvidia adapter
-		if (adapterDesc.VendorId == 4318)
+		adapters.push_back(UniqueReleasePtr<IDXGIAdapter1>(pTmpAdapter));
+	}
+	if (adapters.size() > 1)
+	{
+		// Find the NVidia one
+		for (UINT i = 0; i < adapters.size(); ++i)
 		{
-			m_pAdapter.reset(pTmpAdapter);
-			break;
+			DXGI_ADAPTER_DESC1 adapterDesc;
+			adapters[i]->GetDesc1(&adapterDesc);
+
+			// Get the nvidia adapter
+			if (adapterDesc.VendorId == 4318)
+			{
+				m_pAdapter = std::move(adapters[i]);
+				break;
+			}
 		}
-		pTmpAdapter->Release();
+	}
+	else if (adapters.size() == 1)
+	{
+		// Take the first one
+		m_pAdapter = std::move(adapters[0]);
 	}
 	if (!m_pAdapter)
 	{
-		SDL_Log("Failed to find NVidia device!!.");
+		SDL_Log("Failed to find device!!.");
 		return 6;
 	};
 
