@@ -10,9 +10,12 @@ using namespace std;
 using namespace DirectX;
 
 VertexDesc Triangle[] = {
-	{ XMFLOAT3(0.5f, 0.5f, 0.5f)/*, XMFLOAT4(1.f, 0.f, 0.f, 1.f) */},
-	{ XMFLOAT3(0.5f, -0.5f, 0.5f)/*, XMFLOAT4(0.f, 1.f, 0.f, 1.f) */},
-	{ XMFLOAT3(-0.5f, -0.5f, 0.5f)/*, XMFLOAT4(0.f, 0.f, 1.f, 1.f) */}
+	{ XMFLOAT3(0.5f, 0.5f, 0.5f)/*, XMFLOAT4(1.f, 0.f, 0.f, 1.f) */}, // Top Right
+	{ XMFLOAT3(0.5f, -0.5f, 0.5f)/*, XMFLOAT4(0.f, 1.f, 0.f, 1.f) */}, // Bottom Right
+	{ XMFLOAT3(-0.5f, -0.5f, 0.5f)/*, XMFLOAT4(0.f, 0.f, 1.f, 1.f) */}, // Bottom Left
+	{ XMFLOAT3(-0.5f, -0.5f, 0.5f)/*, XMFLOAT4(0.f, 0.f, 1.f, 1.f) */}, // Bottom Left
+	{ XMFLOAT3(-0.5f, 0.5f, 0.5f)/*, XMFLOAT4(0.f, 0.f, 1.f, 1.f) */}, // Top Left
+	{ XMFLOAT3(0.5f, 0.5f, 0.5f)/*, XMFLOAT4(0.f, 0.f, 1.f, 1.f) */}, // Top Right
 };
 
 Engine::Engine(int argc, char** argv)
@@ -328,7 +331,7 @@ int Engine::Render()
 	m_pD3dContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	m_pD3dContext->VSSetShader(m_pSolidColourVs.get(), 0, 0);
 	m_pD3dContext->PSSetShader(m_pSolidColourPs.get(), 0, 0);
-	m_pD3dContext->Draw(3, 0);
+	m_pD3dContext->Draw(ARRAYSIZE(Triangle), 0);
 
 	m_pSwapChain->Present(0, 0);
 

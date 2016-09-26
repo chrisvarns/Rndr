@@ -9,6 +9,8 @@
 #include <DirectXMath.h>
 #include "UniquePtr.h"
 
+#define ARRAYSIZE(a) sizeof(a)/sizeof(a[0])
+
 struct VertexDesc
 {
 	DirectX::XMFLOAT3 Position;
