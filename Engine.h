@@ -8,14 +8,9 @@
 #include <d3d11.h>
 #include <DirectXMath.h>
 #include "UniquePtr.h"
+#include <assimp/scene.h>
 
 #define ARRAYSIZE(a) sizeof(a)/sizeof(a[0])
-
-struct VertexDesc
-{
-	DirectX::XMFLOAT3 Position;
-	//DirectX::XMFLOAT4 colour;
-};
 
 class Engine
 {
@@ -33,6 +28,7 @@ private:
 	int				m_WindowWidth;
 	int				m_WindowHeight;
 	std::string		m_ShaderDir;
+	std::string		m_MeshPath;
 
 	// SDL
 	UniquePtr<SDL_Window> m_pSdlWindow = UniquePtr<SDL_Window>([](SDL_Window* window) { SDL_DestroyWindow(window); });
@@ -51,6 +47,7 @@ private:
 	UniqueReleasePtr<ID3D11InputLayout>			m_pInputLayout;
 	UniqueReleasePtr<ID3D11VertexShader>		m_pSolidColourVs;
 	UniqueReleasePtr<ID3D11PixelShader>			m_pSolidColourPs;
+	int											m_pNumVerts;
 
 	static std::vector<std::string> ms_Commands;
 	int ParseArgs();

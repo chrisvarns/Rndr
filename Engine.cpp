@@ -5,18 +5,12 @@
 #include <memory>
 #include <d3d11.h>
 #include <d3dcompiler.h>
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
 
 using namespace std;
 using namespace DirectX;
-
-VertexDesc Triangle[] = {
-	{ XMFLOAT3(0.5f, 0.5f, 0.5f)/*, XMFLOAT4(1.f, 0.f, 0.f, 1.f) */}, // Top Right
-	{ XMFLOAT3(0.5f, -0.5f, 0.5f)/*, XMFLOAT4(0.f, 1.f, 0.f, 1.f) */}, // Bottom Right
-	{ XMFLOAT3(-0.5f, -0.5f, 0.5f)/*, XMFLOAT4(0.f, 0.f, 1.f, 1.f) */}, // Bottom Left
-	{ XMFLOAT3(-0.5f, -0.5f, 0.5f)/*, XMFLOAT4(0.f, 0.f, 1.f, 1.f) */}, // Bottom Left
-	{ XMFLOAT3(-0.5f, 0.5f, 0.5f)/*, XMFLOAT4(0.f, 0.f, 1.f, 1.f) */}, // Top Left
-	{ XMFLOAT3(0.5f, 0.5f, 0.5f)/*, XMFLOAT4(0.f, 0.f, 1.f, 1.f) */}, // Top Right
-};
 
 Engine::Engine(int argc, char** argv)
 	: m_NumCmdLineArgs(argc)
@@ -58,6 +52,10 @@ int Engine::ParseArgs()
 		else if (cmd == "shaderDir")
 		{
 			m_ShaderDir = arg;
+		}
+		else if (cmd == "mesh")
+		{
+			m_MeshPath = arg;
 		}
 		else return 1;
 	}
@@ -236,17 +234,25 @@ int Engine::HandleEvents()
 
 int Engine::LoadContent()
 {
+	// Load the asset with assimp
+	Assimp::Importer assimp;
+	const aiScene* m_pScene = assimp.ReadFile(m_MeshPath,
+		aiProcess_ConvertToLeftHanded	// Convert to CCW for DirectX.
+	);
+
+	aiMesh* mesh = m_pScene->mMeshes[0];
+	m_pNumVerts = mesh->mNumVertices;
 	////////////////////
-	// Create vertex buffer for triangle
+	// Create vertex buffer
 	D3D11_BUFFER_DESC vertexDesc;
 	ZeroMemory(&vertexDesc, sizeof(vertexDesc));
 	vertexDesc.Usage = D3D11_USAGE_DEFAULT;
 	vertexDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	vertexDesc.ByteWidth = sizeof(Triangle);
+	vertexDesc.ByteWidth = sizeof(*mesh->mVertices) * mesh->mNumVertices;
 
 	D3D11_SUBRESOURCE_DATA resourceData;
 	ZeroMemory(&resourceData, sizeof(resourceData));
-	resourceData.pSysMem = Triangle;
+	resourceData.pSysMem = mesh->mVertices;
 
 	if (FAILED(m_pD3dDevice->CreateBuffer(&vertexDesc, &resourceData, m_pVertexBuffer.GetRef())))
 	{
@@ -309,7 +315,6 @@ int Engine::LoadContent()
 		SDL_Log("CreatePixelShader failed");
 		return 6;
 	}
-
 	return 0;
 }
 
@@ -323,7 +328,7 @@ int Engine::Render()
 	FLOAT clearColor[4] = { 0.f, 0.f, 0.25f, 0.f };
 	m_pD3dContext->ClearRenderTargetView(m_pBackBufferRTView.get(), clearColor);
 
-	unsigned int stride = sizeof(VertexDesc);
+	unsigned int stride = 12;
 	unsigned int offset = 0;
 
 	m_pD3dContext->IASetInputLayout(m_pInputLayout.get());
@@ -331,7 +336,7 @@ int Engine::Render()
 	m_pD3dContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	m_pD3dContext->VSSetShader(m_pSolidColourVs.get(), 0, 0);
 	m_pD3dContext->PSSetShader(m_pSolidColourPs.get(), 0, 0);
-	m_pD3dContext->Draw(ARRAYSIZE(Triangle), 0);
+	m_pD3dContext->Draw(m_pNumVerts, 0);
 
 	m_pSwapChain->Present(0, 0);
 
