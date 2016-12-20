@@ -8,6 +8,7 @@
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
+#include <glm.hpp>
 
 using namespace std;
 using namespace DirectX;
@@ -256,7 +257,7 @@ int Engine::LoadContent()
 
 	if (FAILED(m_pD3dDevice->CreateBuffer(&vertexDesc, &resourceData, m_pVertexBuffer.GetRef())))
 	{
-		SDL_Log("CreateBuffer failed");
+		SDL_Log("CreateBuffer (Vertex) failed");
 		return 1;
 	}
 
@@ -315,11 +316,35 @@ int Engine::LoadContent()
 		SDL_Log("CreatePixelShader failed");
 		return 6;
 	}
+
+	////////////////////
+	// Constant buffer
+	D3D11_BUFFER_DESC cBufferDesc;
+	ZeroMemory(&cBufferDesc, sizeof(cBufferDesc));
+	cBufferDesc.ByteWidth = sizeof(glm::fmat4);
+	cBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	cBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	cBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+
+	if (FAILED(m_pD3dDevice->CreateBuffer(&cBufferDesc, NULL, m_pConstantBuffer.GetRef())))
+	{
+		SDL_Log("CreateBuffer (Constant) failed!");
+		return 7;
+	}
+
 	return 0;
 }
 
 int Engine::Update(FLOAT deltaTime)
 {
+	// Update the constant buffer...
+	glm::mat4 identity = glm::mat4(1.f);
+
+	D3D11_MAPPED_SUBRESOURCE cBuffer;
+	m_pD3dContext->Map(m_pConstantBuffer.get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &cBuffer);
+	memcpy(cBuffer.pData, &identity, sizeof(identity));
+	m_pD3dContext->Unmap(m_pConstantBuffer.get(), 0);
+
 	return 0;
 }
 
@@ -328,7 +353,7 @@ int Engine::Render()
 	FLOAT clearColor[4] = { 0.f, 0.f, 0.25f, 0.f };
 	m_pD3dContext->ClearRenderTargetView(m_pBackBufferRTView.get(), clearColor);
 
-	unsigned int stride = 12;
+	unsigned int stride = sizeof(aiVector3D);
 	unsigned int offset = 0;
 
 	m_pD3dContext->IASetInputLayout(m_pInputLayout.get());
@@ -336,6 +361,7 @@ int Engine::Render()
 	m_pD3dContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	m_pD3dContext->VSSetShader(m_pSolidColourVs.get(), 0, 0);
 	m_pD3dContext->PSSetShader(m_pSolidColourPs.get(), 0, 0);
+	m_pD3dContext->VSSetConstantBuffers(0, 1, m_pConstantBuffer.GetRef());
 	m_pD3dContext->Draw(m_pNumVerts, 0);
 
 	m_pSwapChain->Present(0, 0);

@@ -49,6 +49,9 @@ private:
 	UniqueReleasePtr<ID3D11PixelShader>			m_pSolidColourPs;
 	int											m_pNumVerts;
 
+	// Camera stuff
+	UniqueReleasePtr<ID3D11Buffer>				m_pConstantBuffer;
+
 	static std::vector<std::string> ms_Commands;
 	int ParseArgs();
 
