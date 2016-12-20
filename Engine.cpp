@@ -9,6 +9,7 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #include <glm.hpp>
+#include <gtc/matrix_transform.hpp>
 
 using namespace std;
 using namespace DirectX;
@@ -338,11 +339,12 @@ int Engine::LoadContent()
 int Engine::Update(FLOAT deltaTime)
 {
 	// Update the constant buffer...
-	glm::mat4 identity = glm::mat4(1.f);
+	static glm::mat4 view = glm::mat4(1.f);
+	view = glm::rotate(view, 0.01f, glm::vec3(0.f, 1.f, 0.0f));
 
 	D3D11_MAPPED_SUBRESOURCE cBuffer;
 	m_pD3dContext->Map(m_pConstantBuffer.get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &cBuffer);
-	memcpy(cBuffer.pData, &identity, sizeof(identity));
+	memcpy(cBuffer.pData, &view, sizeof(view));
 	m_pD3dContext->Unmap(m_pConstantBuffer.get(), 0);
 
 	return 0;

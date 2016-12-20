@@ -8,9 +8,14 @@ struct VSOut
 	float4 Position : SV_POSITION;
 };
 
+cbuffer VSConstantBuffer : register(b0)
+{
+	matrix ViewMatrix;
+};
+
 VSOut main(VSIn input)
 {
 	VSOut output;
-	output.Position = input.Position;
+	output.Position = mul(input.Position, ViewMatrix);
 	return output;
 }
