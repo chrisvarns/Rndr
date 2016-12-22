@@ -9,6 +9,8 @@
 #include <DirectXMath.h>
 #include "UniquePtr.h"
 #include <assimp/scene.h>
+#define GLM_FORCE_LEFT_HANDED
+#include <glm.hpp>
 
 #define ARRAYSIZE(a) sizeof(a)/sizeof(a[0])
 
@@ -48,15 +50,23 @@ private:
 	UniqueReleasePtr<ID3D11VertexShader>		m_pSolidColourVs;
 	UniqueReleasePtr<ID3D11PixelShader>			m_pSolidColourPs;
 	int											m_pNumVerts;
+	glm::mat4									m_ModelMatrix;
 
 	// Camera stuff
 	UniqueReleasePtr<ID3D11Buffer>				m_pConstantBuffer;
+	glm::mat4									m_ViewMatrix;
+	float										m_ViewAngleH;
+	float										m_ViewAngleV;
+	glm::vec3									m_ViewPos;
+	glm::mat4									m_ProjectionMatrix;
+	
 
 	static std::vector<std::string> ms_Commands;
 	int ParseArgs();
 
 	int HandleEvents();
-	int Update(FLOAT DeltaTime);
+	int Update(float deltaTime);
+	int UpdateCamera(float deltaTime);
 	int Render();
 };
 

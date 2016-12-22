@@ -10,12 +10,12 @@ struct VSOut
 
 cbuffer VSConstantBuffer : register(b0)
 {
-	matrix ViewMatrix;
+	matrix MvpMatrix;
 };
 
 VSOut main(VSIn input)
 {
 	VSOut output;
-	output.Position = mul(input.Position, ViewMatrix);
+	output.Position = mul(MvpMatrix, input.Position);
 	return output;
 }

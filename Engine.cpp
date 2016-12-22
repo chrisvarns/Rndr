@@ -8,7 +8,6 @@
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
-#include <glm.hpp>
 #include <gtc/matrix_transform.hpp>
 
 using namespace std;
@@ -19,6 +18,12 @@ Engine::Engine(int argc, char** argv)
 	, m_CmdLineArgs(argv)
 	, m_WindowWidth(1280)
 	, m_WindowHeight(720)
+	, m_ModelMatrix(1.f)
+	, m_ViewMatrix(1.f)
+	, m_ViewAngleV(0.f)
+	, m_ViewAngleH(0.f)
+	, m_ViewPos(0.f)
+	, m_ProjectionMatrix(1.f)
 {
 }
 
@@ -81,6 +86,8 @@ int Engine::Init()
 		"Rndr",
 		SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
 		m_WindowWidth, m_WindowHeight, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE));
+
+	m_ProjectionMatrix = glm::perspective(45.f, (float)m_WindowWidth / m_WindowHeight, 0.1f, 100.f);
 
 	if (!m_pSdlWindow) {
 		SDL_Log("Unable to create SDL Window: %s", SDL_GetError());
@@ -226,6 +233,20 @@ int Engine::HandleEvents()
 			SDL_Log("SDL_QUIT");
 			return 1;
 			break;
+
+		case SDL_MOUSEBUTTONDOWN:
+			if (event.button.button == SDL_BUTTON_RIGHT) SDL_SetRelativeMouseMode(SDL_TRUE);
+			break;
+		case SDL_MOUSEBUTTONUP:
+			if (event.button.button == SDL_BUTTON_RIGHT) SDL_SetRelativeMouseMode(SDL_FALSE);
+			break;
+		case SDL_MOUSEMOTION:
+			if (SDL_GetRelativeMouseMode())
+			{
+				m_ViewAngleH += event.motion.xrel * 0.001;
+				m_ViewAngleV -= event.motion.yrel * 0.001;				
+			}
+			break;
 		default:
 			break;
 		}
@@ -244,6 +265,8 @@ int Engine::LoadContent()
 
 	aiMesh* mesh = m_pScene->mMeshes[0];
 	m_pNumVerts = mesh->mNumVertices;
+	m_ModelMatrix = glm::mat4(1.f);
+
 	////////////////////
 	// Create vertex buffer
 	D3D11_BUFFER_DESC vertexDesc;
@@ -336,11 +359,50 @@ int Engine::LoadContent()
 	return 0;
 }
 
-int Engine::Update(FLOAT deltaTime)
+int Engine::UpdateCamera(float deltaTime)
 {
+	// Wrap around/clamp the view angles
+	if (m_ViewAngleH > glm::two_pi<float>()) m_ViewAngleH -= glm::two_pi<float>();
+	else if (m_ViewAngleH < 0) m_ViewAngleH += glm::two_pi<float>();
+	m_ViewAngleV = glm::clamp(m_ViewAngleV, glm::radians(-85.f), glm::radians(85.f));
+
+	glm::vec3 viewDir(
+		glm::cos(m_ViewAngleV) * glm::sin(m_ViewAngleH),
+		glm::sin(m_ViewAngleV),
+		glm::cos(m_ViewAngleV) * glm::cos(m_ViewAngleH)
+	);
+
+	glm::vec3 rightDir(
+		glm::sin(m_ViewAngleH + glm::half_pi<float>()),
+		0,
+		glm::cos(m_ViewAngleH + glm::half_pi<float>())
+	);
+
+	glm::vec3 upDir = glm::cross(viewDir, rightDir);
+
+	// If the RMB is held, we can grab WASD and update the camera pos.
+	if (SDL_GetRelativeMouseMode())
+	{
+		const uint8_t* keyboardState = SDL_GetKeyboardState(NULL);
+		if (keyboardState[SDL_SCANCODE_W]) m_ViewPos += viewDir * 0.001f;
+		if (keyboardState[SDL_SCANCODE_S]) m_ViewPos -= viewDir * 0.001f;
+		if (keyboardState[SDL_SCANCODE_A]) m_ViewPos -= rightDir * 0.001f;
+		if (keyboardState[SDL_SCANCODE_D]) m_ViewPos += rightDir * 0.001f;
+		if (keyboardState[SDL_SCANCODE_E]) m_ViewPos += upDir * 0.001f;
+		if (keyboardState[SDL_SCANCODE_Q]) m_ViewPos -= upDir * 0.001f;
+	}
+
+	//m_ViewMatrix = glm::lookAt(m_ViewPos, m_ViewPos + viewDir, glm::vec3(0.f, 1.f, 0.f));
+	m_ViewMatrix = glm::lookAt(m_ViewPos, m_ViewPos + viewDir, upDir);
+	return 0;
+}
+
+int Engine::Update(float deltaTime)
+{
+	UpdateCamera(deltaTime);
 	// Update the constant buffer...
 	static glm::mat4 view = glm::mat4(1.f);
-	view = glm::rotate(view, 0.01f, glm::vec3(0.f, 1.f, 0.0f));
+	view = m_ProjectionMatrix * m_ViewMatrix * m_ModelMatrix;
 
 	D3D11_MAPPED_SUBRESOURCE cBuffer;
 	m_pD3dContext->Map(m_pConstantBuffer.get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &cBuffer);
