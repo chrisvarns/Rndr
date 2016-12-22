@@ -202,6 +202,22 @@ int Engine::Init()
 	viewport.TopLeftY = 0.f;
 	m_pD3dContext->RSSetViewports(1, &viewport);
 
+	// Raster state, defaults except CCW winding
+	D3D11_RASTERIZER_DESC rasterDesc;
+	ZeroMemory(&rasterDesc, sizeof(rasterDesc));
+	rasterDesc.FillMode = D3D11_FILL_SOLID;
+	rasterDesc.CullMode = D3D11_CULL_BACK;
+	rasterDesc.FrontCounterClockwise = true;
+	rasterDesc.DepthBias = 0;
+	rasterDesc.SlopeScaledDepthBias = 0.f;
+	rasterDesc.DepthBiasClamp = 0.f;
+	rasterDesc.DepthClipEnable = true;
+	rasterDesc.ScissorEnable = false;
+	rasterDesc.MultisampleEnable = false;
+	rasterDesc.AntialiasedLineEnable = false;
+	m_pD3dDevice->CreateRasterizerState(&rasterDesc, m_pRasterState.GetRef());
+	m_pD3dContext->RSSetState(m_pRasterState.get());
+
 	return 0;
 }
 
@@ -265,7 +281,7 @@ int Engine::LoadContent()
 
 	aiMesh* mesh = m_pScene->mMeshes[0];
 	m_pNumVerts = mesh->mNumVertices;
-	m_ModelMatrix = glm::mat4(1.f);
+	m_ModelMatrix = glm::translate(glm::mat4(1.f), glm::vec3(0.f, 0.f, 1.f));
 
 	////////////////////
 	// Create vertex buffer
