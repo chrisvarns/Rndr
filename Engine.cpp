@@ -278,6 +278,7 @@ int Engine::LoadContent()
 	Assimp::Importer assimp;
 	const aiScene* m_pScene = assimp.ReadFile(m_MeshPath,
 		aiProcess_ConvertToLeftHanded	// Convert to CW for DirectX.
+		| aiProcess_ImproveCacheLocality
 	);
 
 	aiMesh* mesh = m_pScene->mMeshes[0];
