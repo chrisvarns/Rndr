@@ -30,10 +30,10 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Shaders\SolidColourVertex.hlsl">
+    <FxCompile Include="Shaders\PS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="Shaders\SolidColourPixel.hlsl">
+    <FxCompile Include="Shaders\VS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
   </ItemGroup>

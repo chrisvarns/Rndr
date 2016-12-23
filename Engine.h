@@ -15,6 +15,22 @@
 
 #define ARRAYSIZE(a) sizeof(a)/sizeof(a[0])
 
+enum RenderMode {
+	SolidColour = 0,
+	Normals,
+	Depth,
+	END_OF_LIST
+};
+
+RenderMode& operator++(RenderMode& rm);
+RenderMode operator++(RenderMode& rm, int);
+
+struct ConstBuffer
+{
+	glm::mat4 mvpMatrix;
+	glm::ivec4 renderMode;
+};
+
 class Engine
 {
 public:
@@ -26,6 +42,7 @@ public:
 	int Release();
 
 private:
+	static std::vector<std::string> ms_Commands;
 	int				m_NumCmdLineArgs;
 	char**			m_CmdLineArgs;
 	int				m_WindowWidth;
@@ -48,6 +65,7 @@ private:
 
 	// Mesh stuff
 	UniqueReleasePtr<ID3D11Buffer>				m_pVertexBuffer;
+	UniqueReleasePtr<ID3D11Buffer>				m_pNormalBuffer;
 	UniqueReleasePtr<ID3D11Buffer>				m_pIndexBuffer;
 	UniqueReleasePtr<ID3D11InputLayout>			m_pInputLayout;
 	UniqueReleasePtr<ID3D11VertexShader>		m_pSolidColourVs;
@@ -63,10 +81,10 @@ private:
 	glm::vec3									m_ViewPos;
 	glm::mat4									m_ProjectionMatrix;
 	
+	// Render Stuff
+	RenderMode									m_RenderMode;
 
-	static std::vector<std::string> ms_Commands;
 	int ParseArgs();
-
 	int HandleEvents();
 	int Update(float deltaTime);
 	int UpdateCamera(float deltaTime);

@@ -14,6 +14,20 @@
 using namespace std;
 using namespace DirectX;
 
+// Special behavior for ++Colors
+RenderMode& operator++(RenderMode& rm) {
+	rm = static_cast<RenderMode>(static_cast<int>(rm) + 1);
+	if (rm == RenderMode::END_OF_LIST) rm = static_cast<RenderMode>(0);
+	return rm;
+}
+
+// Special behavior for Colors++
+RenderMode operator++(RenderMode& rm, int) {
+	RenderMode result = rm;
+	++rm;
+	return result;
+}
+
 Engine::Engine(int argc, char** argv)
 	: m_NumCmdLineArgs(argc)
 	, m_CmdLineArgs(argv)
@@ -25,6 +39,7 @@ Engine::Engine(int argc, char** argv)
 	, m_ViewAngleH(0.f)
 	, m_ViewPos(0.f)
 	, m_ProjectionMatrix(1.f)
+	, m_RenderMode(RenderMode::SolidColour)
 {
 }
 
@@ -264,6 +279,13 @@ int Engine::HandleEvents()
 				m_ViewAngleV -= event.motion.yrel * 0.001;				
 			}
 			break;
+		case SDL_KEYDOWN:
+			switch (event.key.keysym.sym)
+			{
+			case SDLK_r:
+				++m_RenderMode;
+			}
+			break;
 		default:
 			break;
 		}
@@ -278,6 +300,7 @@ int Engine::LoadContent()
 	Assimp::Importer assimp;
 	const aiScene* m_pScene = assimp.ReadFile(m_MeshPath,
 		aiProcess_ConvertToLeftHanded	// Convert to CW for DirectX.
+		| aiProcess_GenSmoothNormals
 		| aiProcess_ImproveCacheLocality
 	);
 
@@ -288,10 +311,11 @@ int Engine::LoadContent()
 	std::vector<uint16_t> indices;
 	for (uint32_t i = 0; i < mesh->mNumFaces; ++i)
 	{
-		assert(mesh->mFaces[i].mNumIndices == 3);
-		indices.push_back(static_cast<uint16_t>(mesh->mFaces[i].mIndices[0]));
-		indices.push_back(static_cast<uint16_t>(mesh->mFaces[i].mIndices[1]));
-		indices.push_back(static_cast<uint16_t>(mesh->mFaces[i].mIndices[2]));
+		const aiFace& face = mesh->mFaces[i];
+		assert(face.mNumIndices == 3);
+		indices.push_back(static_cast<uint16_t>(face.mIndices[0]));
+		indices.push_back(static_cast<uint16_t>(face.mIndices[1]));
+		indices.push_back(static_cast<uint16_t>(face.mIndices[2]));
 	}
 
 	////////////////////
@@ -308,7 +332,25 @@ int Engine::LoadContent()
 
 	if (FAILED(m_pD3dDevice->CreateBuffer(&vertexDesc, &vertexData, m_pVertexBuffer.GetRef())))
 	{
-		SDL_Log("CreateBuffer (Vertex) failed");
+		SDL_Log("CreateBuffer (Vertex Pos) failed");
+		return 1;
+	}
+
+	////////////////////
+	// Create normals buffer
+	D3D11_BUFFER_DESC normalsDesc;
+	ZeroMemory(&normalsDesc, sizeof(normalsDesc));
+	normalsDesc.Usage = D3D11_USAGE_DEFAULT;
+	normalsDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	normalsDesc.ByteWidth = sizeof(*mesh->mNormals) * mesh->mNumVertices;
+
+	D3D11_SUBRESOURCE_DATA normalData;
+	ZeroMemory(&normalData, sizeof(normalData));
+	normalData.pSysMem = mesh->mNormals;
+
+	if (FAILED(m_pD3dDevice->CreateBuffer(&normalsDesc, &normalData, m_pNormalBuffer.GetRef())))
+	{
+		SDL_Log("CreateBuffer (Vertex Normal) failed");
 		return 1;
 	}
 
@@ -327,7 +369,7 @@ int Engine::LoadContent()
 
 	if (FAILED(m_pD3dDevice->CreateBuffer(&indicesDesc, &indicesData, m_pIndexBuffer.GetRef())))
 	{
-		SDL_Log("CreateBuffer (Vertex) failed");
+		SDL_Log("CreateBuffer (Index) failed");
 		return 1;
 	}
 
@@ -337,7 +379,7 @@ int Engine::LoadContent()
 #if defined(DEBUG) || defined(_DEBUG)
 	shaderFlags |= D3DCOMPILE_DEBUG;
 #endif
-	SDL_RWops* vsFile = SDL_RWFromFile((std::string(SDL_GetBasePath()) + "\\SolidColourVertex.cso").c_str(), "rb");
+	SDL_RWops* vsFile = SDL_RWFromFile((std::string(SDL_GetBasePath()) + "\\VS.cso").c_str(), "rb");
 	if (vsFile == nullptr)
 	{
 		SDL_Log("SDL_RWFromFile failed");
@@ -359,7 +401,8 @@ int Engine::LoadContent()
 	// Vertex input layout
 	D3D11_INPUT_ELEMENT_DESC vertexLayout[] =
 	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0}
+		{ "POSITION",	0,	DXGI_FORMAT_R32G32B32_FLOAT,	0,	0,	D3D11_INPUT_PER_VERTEX_DATA,	0 },
+		{ "NORMAL",		0,	DXGI_FORMAT_R32G32B32_FLOAT,	1,	0,	D3D11_INPUT_PER_VERTEX_DATA,	0 }
 	};
 	if (FAILED(m_pD3dDevice->CreateInputLayout(vertexLayout, ARRAYSIZE(vertexLayout), vsData.get(), vsDataSize, m_pInputLayout.GetRef())))
 	{
@@ -369,7 +412,7 @@ int Engine::LoadContent()
 
 	////////////////////
 	// Pixel Shader
-	SDL_RWops* psFile = SDL_RWFromFile((std::string(SDL_GetBasePath()) + "\\SolidColourPixel.cso").c_str(), "rb");
+	SDL_RWops* psFile = SDL_RWFromFile((std::string(SDL_GetBasePath()) + "\\PS.cso").c_str(), "rb");
 	if (psFile == nullptr)
 	{
 		SDL_Log("SDL_RWFromFile failed");
@@ -391,7 +434,7 @@ int Engine::LoadContent()
 	// Constant buffer
 	D3D11_BUFFER_DESC cBufferDesc;
 	ZeroMemory(&cBufferDesc, sizeof(cBufferDesc));
-	cBufferDesc.ByteWidth = sizeof(glm::fmat4);
+	cBufferDesc.ByteWidth = sizeof(ConstBuffer);
 	cBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
 	cBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	cBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
@@ -447,12 +490,13 @@ int Engine::Update(float deltaTime)
 {
 	UpdateCamera(deltaTime);
 	// Update the constant buffer...
-	static glm::mat4 view = glm::mat4(1.f);
-	view = m_ProjectionMatrix * m_ViewMatrix * m_ModelMatrix;
+	ConstBuffer constBuffer;
+	constBuffer.mvpMatrix = m_ProjectionMatrix * m_ViewMatrix * m_ModelMatrix;
+	constBuffer.renderMode = glm::ivec4(static_cast<int>(m_RenderMode));
 
 	D3D11_MAPPED_SUBRESOURCE cBuffer;
 	m_pD3dContext->Map(m_pConstantBuffer.get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &cBuffer);
-	memcpy(cBuffer.pData, &view, sizeof(view));
+	memcpy(cBuffer.pData, &constBuffer, sizeof(constBuffer));
 	m_pD3dContext->Unmap(m_pConstantBuffer.get(), 0);
 
 	return 0;
@@ -468,11 +512,13 @@ int Engine::Render()
 
 	m_pD3dContext->IASetInputLayout(m_pInputLayout.get());
 	m_pD3dContext->IASetVertexBuffers(0, 1, m_pVertexBuffer.GetRef(), &stride, &offset);
+	m_pD3dContext->IASetVertexBuffers(1, 1, m_pNormalBuffer.GetRef(), &stride, &offset);
 	m_pD3dContext->IASetIndexBuffer(m_pIndexBuffer.get(), DXGI_FORMAT_R16_UINT, 0);
 	m_pD3dContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	m_pD3dContext->VSSetShader(m_pSolidColourVs.get(), 0, 0);
 	m_pD3dContext->PSSetShader(m_pSolidColourPs.get(), 0, 0);
 	m_pD3dContext->VSSetConstantBuffers(0, 1, m_pConstantBuffer.GetRef());
+	m_pD3dContext->PSSetConstantBuffers(0, 1, m_pConstantBuffer.GetRef());
 	m_pD3dContext->Draw(m_pNumVerts, 0);
 
 	m_pSwapChain->Present(0, 0);
