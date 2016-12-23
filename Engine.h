@@ -48,6 +48,7 @@ private:
 
 	// Mesh stuff
 	UniqueReleasePtr<ID3D11Buffer>				m_pVertexBuffer;
+	UniqueReleasePtr<ID3D11Buffer>				m_pIndexBuffer;
 	UniqueReleasePtr<ID3D11InputLayout>			m_pInputLayout;
 	UniqueReleasePtr<ID3D11VertexShader>		m_pSolidColourVs;
 	UniqueReleasePtr<ID3D11PixelShader>			m_pSolidColourPs;

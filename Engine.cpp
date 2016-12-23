@@ -2,6 +2,7 @@
 #include <SDL.h>
 #include <string>
 #include <sstream>
+#include <cassert>
 #include <memory>
 #include <d3d11.h>
 #include <d3dcompiler.h>
@@ -276,12 +277,21 @@ int Engine::LoadContent()
 	// Load the asset with assimp
 	Assimp::Importer assimp;
 	const aiScene* m_pScene = assimp.ReadFile(m_MeshPath,
-		aiProcess_ConvertToLeftHanded	// Convert to CCW for DirectX.
+		aiProcess_ConvertToLeftHanded	// Convert to CW for DirectX.
 	);
 
 	aiMesh* mesh = m_pScene->mMeshes[0];
 	m_pNumVerts = mesh->mNumVertices;
 	m_ModelMatrix = glm::translate(glm::mat4(1.f), glm::vec3(0.f, 0.f, 1.f));
+
+	std::vector<uint16_t> indices;
+	for (uint32_t i = 0; i < mesh->mNumFaces; ++i)
+	{
+		assert(mesh->mFaces[i].mNumIndices == 3);
+		indices.push_back(static_cast<uint16_t>(mesh->mFaces[i].mIndices[0]));
+		indices.push_back(static_cast<uint16_t>(mesh->mFaces[i].mIndices[1]));
+		indices.push_back(static_cast<uint16_t>(mesh->mFaces[i].mIndices[2]));
+	}
 
 	////////////////////
 	// Create vertex buffer
@@ -291,11 +301,30 @@ int Engine::LoadContent()
 	vertexDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	vertexDesc.ByteWidth = sizeof(*mesh->mVertices) * mesh->mNumVertices;
 
-	D3D11_SUBRESOURCE_DATA resourceData;
-	ZeroMemory(&resourceData, sizeof(resourceData));
-	resourceData.pSysMem = mesh->mVertices;
+	D3D11_SUBRESOURCE_DATA vertexData;
+	ZeroMemory(&vertexData, sizeof(vertexData));
+	vertexData.pSysMem = mesh->mVertices;
 
-	if (FAILED(m_pD3dDevice->CreateBuffer(&vertexDesc, &resourceData, m_pVertexBuffer.GetRef())))
+	if (FAILED(m_pD3dDevice->CreateBuffer(&vertexDesc, &vertexData, m_pVertexBuffer.GetRef())))
+	{
+		SDL_Log("CreateBuffer (Vertex) failed");
+		return 1;
+	}
+
+	////////////////////
+	// Create Index buffer
+	D3D11_BUFFER_DESC indicesDesc;
+	ZeroMemory(&indicesDesc, sizeof(indicesDesc));
+	indicesDesc.Usage = D3D11_USAGE_DEFAULT;
+	indicesDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	indicesDesc.ByteWidth = indices.size() * sizeof(uint16_t);
+
+	D3D11_SUBRESOURCE_DATA indicesData;
+	indicesData.pSysMem = indices.data();
+	indicesData.SysMemPitch = 0;
+	indicesData.SysMemSlicePitch = 0;
+
+	if (FAILED(m_pD3dDevice->CreateBuffer(&indicesDesc, &indicesData, m_pIndexBuffer.GetRef())))
 	{
 		SDL_Log("CreateBuffer (Vertex) failed");
 		return 1;
@@ -438,6 +467,7 @@ int Engine::Render()
 
 	m_pD3dContext->IASetInputLayout(m_pInputLayout.get());
 	m_pD3dContext->IASetVertexBuffers(0, 1, m_pVertexBuffer.GetRef(), &stride, &offset);
+	m_pD3dContext->IASetIndexBuffer(m_pIndexBuffer.get(), DXGI_FORMAT_R16_UINT, 0);
 	m_pD3dContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	m_pD3dContext->VSSetShader(m_pSolidColourVs.get(), 0, 0);
 	m_pD3dContext->PSSetShader(m_pSolidColourPs.get(), 0, 0);
