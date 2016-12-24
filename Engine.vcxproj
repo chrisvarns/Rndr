@@ -127,10 +127,19 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Engine.cpp" />
+    <ClCompile Include="Source\imgui.cpp" />
+    <ClCompile Include="Source\imgui_demo.cpp" />
+    <ClCompile Include="Source\imgui_draw.cpp" />
     <ClCompile Include="Source\main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Engine.h" />
+    <ClInclude Include="Source\imconfig.h" />
+    <ClInclude Include="Source\imgui.h" />
+    <ClInclude Include="Source\imgui_internal.h" />
+    <ClInclude Include="Source\stb_rect_pack.h" />
+    <ClInclude Include="Source\stb_textedit.h" />
+    <ClInclude Include="Source\stb_truetype.h" />
     <ClInclude Include="Source\UniquePtr.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
