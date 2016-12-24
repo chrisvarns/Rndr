@@ -205,8 +205,55 @@ int Engine::Init()
 		return 9;
 	}
 
-	ID3D11RenderTargetView* backBufferRTView[] = { m_pBackBufferRTView.get() };
-	m_pD3dContext->OMSetRenderTargets(1, &backBufferRTView[0], NULL);
+	// Set up the depth/stencil buffer
+	D3D11_TEXTURE2D_DESC depthStencilDesc;
+	ZeroMemory(&depthStencilDesc, sizeof(depthStencilDesc));
+	depthStencilDesc.Width = m_WindowWidth;
+	depthStencilDesc.Height = m_WindowHeight;
+	depthStencilDesc.MipLevels = 1;
+	depthStencilDesc.ArraySize = 1;
+	depthStencilDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	depthStencilDesc.SampleDesc.Count = 1;
+	depthStencilDesc.SampleDesc.Quality = 0;
+	depthStencilDesc.Usage = D3D11_USAGE_DEFAULT;
+	depthStencilDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+	depthStencilDesc.CPUAccessFlags = 0;
+	depthStencilDesc.MiscFlags = 0;
+	if (FAILED(m_pD3dDevice->CreateTexture2D(&depthStencilDesc, 0, m_pDepthStencilRT.GetRef())))
+	{
+		SDL_Log("CreateTexture2D failed.");
+		return 10;
+	}
+	if (FAILED(m_pD3dDevice->CreateDepthStencilView(m_pDepthStencilRT.get(), 0, m_pDepthStencilRTView.GetRef())))
+	{
+		SDL_Log("CreateDepthStencilView failed.");
+		return 11;
+	}
+	m_pD3dContext->OMSetRenderTargets(1, m_pBackBufferRTView.GetRef(), m_pDepthStencilRTView.get());
+
+	D3D11_DEPTH_STENCIL_DESC depthStencilStateDesc;
+	ZeroMemory(&depthStencilStateDesc, sizeof(depthStencilStateDesc));
+	depthStencilStateDesc.DepthEnable = true;
+	depthStencilStateDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	depthStencilStateDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+	depthStencilStateDesc.StencilEnable = false;
+	depthStencilStateDesc.StencilReadMask = D3D11_DEFAULT_STENCIL_READ_MASK;
+	depthStencilStateDesc.StencilWriteMask = D3D11_DEFAULT_STENCIL_WRITE_MASK;
+	depthStencilStateDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+	depthStencilStateDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+	depthStencilStateDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
+	depthStencilStateDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
+	depthStencilStateDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+	depthStencilStateDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+	depthStencilStateDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+	depthStencilStateDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+	if (FAILED(m_pD3dDevice->CreateDepthStencilState(&depthStencilStateDesc, m_pDepthStencilState.GetRef())))
+	{
+		SDL_Log("CreateDepthStencilState failed.");
+		return 12;
+	}
+
+	m_pD3dContext->OMSetDepthStencilState(m_pDepthStencilState.get(), 0);
 
 	D3D11_VIEWPORT viewport;
 	ZeroMemory(&viewport, sizeof(viewport));
@@ -231,7 +278,11 @@ int Engine::Init()
 	rasterDesc.ScissorEnable = false;
 	rasterDesc.MultisampleEnable = false;
 	rasterDesc.AntialiasedLineEnable = false;
-	m_pD3dDevice->CreateRasterizerState(&rasterDesc, m_pRasterState.GetRef());
+	if (FAILED(m_pD3dDevice->CreateRasterizerState(&rasterDesc, m_pRasterState.GetRef())))
+	{
+		SDL_Log("CreateRasterizerState failed.");
+		return 13;
+	}
 	m_pD3dContext->RSSetState(m_pRasterState.get());
 
 	return 0;
@@ -504,8 +555,9 @@ int Engine::Update(float deltaTime)
 
 int Engine::Render()
 {
-	FLOAT clearColor[4] = { 0.f, 0.f, 0.25f, 0.f };
+	FLOAT clearColor[4] = { 0.f, 0.f, 0.25f, 1.f };
 	m_pD3dContext->ClearRenderTargetView(m_pBackBufferRTView.get(), clearColor);
+	m_pD3dContext->ClearDepthStencilView(m_pDepthStencilRTView.get(), D3D11_CLEAR_DEPTH, 1, 0);
 
 	unsigned int stride = sizeof(aiVector3D);
 	unsigned int offset = 0;

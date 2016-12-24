@@ -61,6 +61,9 @@ private:
 	UniqueReleasePtr<ID3D11DeviceContext>		m_pD3dContext;
 	UniqueReleasePtr<ID3D11Texture2D>			m_pBackBufferRT;
 	UniqueReleasePtr<ID3D11RenderTargetView>	m_pBackBufferRTView;
+	UniqueReleasePtr<ID3D11Texture2D>			m_pDepthStencilRT;
+	UniqueReleasePtr<ID3D11DepthStencilView>	m_pDepthStencilRTView;
+	UniqueReleasePtr<ID3D11DepthStencilState>	m_pDepthStencilState;
 	UniqueReleasePtr<ID3D11RasterizerState>		m_pRasterState;
 
 	// Mesh stuff

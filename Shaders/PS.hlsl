@@ -28,12 +28,12 @@ PSOut main(PSIn input)
 	//Normals
 	else if (RenderMode.x == 1)
 	{
-		output.Colour = input.Normal;
+		output.Colour = float4(input.Normal.xyz, 1);
 	}
 	//Depth
 	else
 	{
-		output.Colour = input.Depth;
+		output.Colour = float4(input.Depth.xxx, 1);
 	}
 	return output;
 }
