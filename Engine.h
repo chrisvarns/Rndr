@@ -3,15 +3,15 @@
 #include <string>
 #include <vector>
 #include <memory>
-#include <SDL.h>
-#include <SDL_syswm.h>
+#include <sdl/SDL.h>
+#include <sdl/SDL_syswm.h>
 #include <d3d11.h>
 #include <DirectXMath.h>
 #include "UniquePtr.h"
 #include <assimp/scene.h>
 #define GLM_FORCE_LEFT_HANDED
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#include <glm.hpp>
+#include <glm/glm.hpp>
 
 #define ARRAYSIZE(a) sizeof(a)/sizeof(a[0])
 
