@@ -13,8 +13,6 @@
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
 
-#define ARRAYSIZE(a) sizeof(a)/sizeof(a[0])
-
 enum RenderMode {
 	SolidColour = 0,
 	Normals,
