@@ -350,13 +350,13 @@ int Engine::LoadContent()
 	// Load the asset with assimp
 	Assimp::Importer assimp;
 	const aiScene* m_pScene = assimp.ReadFile(m_MeshPath,
-		aiProcess_ConvertToLeftHanded	// Convert to CW for DirectX.
-		| aiProcess_GenSmoothNormals
-		| aiProcess_ImproveCacheLocality
+		(aiProcess_ConvertToLeftHanded	// Convert to CW for DirectX.
+		| aiProcessPreset_TargetRealtime_MaxQuality)
+		&~ aiProcess_JoinIdenticalVertices
 	);
 
 	aiMesh* mesh = m_pScene->mMeshes[0];
-	m_pNumVerts = mesh->mNumVertices;
+	m_pNumFaces = mesh->mNumFaces;
 	m_ModelMatrix = glm::translate(glm::mat4(1.f), glm::vec3(0.f, 0.f, 1.f));
 
 	std::vector<uint16_t> indices;
@@ -571,7 +571,7 @@ int Engine::Render()
 	m_pD3dContext->PSSetShader(m_pSolidColourPs.get(), 0, 0);
 	m_pD3dContext->VSSetConstantBuffers(0, 1, m_pConstantBuffer.GetRef());
 	m_pD3dContext->PSSetConstantBuffers(0, 1, m_pConstantBuffer.GetRef());
-	m_pD3dContext->Draw(m_pNumVerts, 0);
+	m_pD3dContext->Draw(m_pNumFaces * 3, 0);
 
 	m_pSwapChain->Present(0, 0);
 

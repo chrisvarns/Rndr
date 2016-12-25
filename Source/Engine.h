@@ -71,7 +71,7 @@ private:
 	UniqueReleasePtr<ID3D11InputLayout>			m_pInputLayout;
 	UniqueReleasePtr<ID3D11VertexShader>		m_pSolidColourVs;
 	UniqueReleasePtr<ID3D11PixelShader>			m_pSolidColourPs;
-	int											m_pNumVerts;
+	int											m_pNumFaces;
 	glm::mat4									m_ModelMatrix;
 
 	// Camera stuff
