@@ -260,7 +260,7 @@ int Engine::Init()
 	viewport.Width = static_cast<float>(m_WindowWidth);
 	viewport.Height = static_cast<float>(m_WindowHeight);
 	viewport.MinDepth = 0.f;
-	viewport.MaxDepth = 0.f;
+	viewport.MaxDepth = 1.f;
 	viewport.TopLeftX = 0.f;
 	viewport.TopLeftY = 0.f;
 	m_pD3dContext->RSSetViewports(1, &viewport);
@@ -557,7 +557,7 @@ int Engine::Render()
 {
 	FLOAT clearColor[4] = { 0.f, 0.f, 0.25f, 1.f };
 	m_pD3dContext->ClearRenderTargetView(m_pBackBufferRTView.get(), clearColor);
-	m_pD3dContext->ClearDepthStencilView(m_pDepthStencilRTView.get(), D3D11_CLEAR_DEPTH, 1, 0);
+	m_pD3dContext->ClearDepthStencilView(m_pDepthStencilRTView.get(), D3D11_CLEAR_DEPTH, 1.f, 0);
 
 	unsigned int stride = sizeof(aiVector3D);
 	unsigned int offset = 0;
