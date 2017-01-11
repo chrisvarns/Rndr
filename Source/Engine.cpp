@@ -140,7 +140,7 @@ int Engine::Init()
 			adapters[i]->GetDesc1(&adapterDesc);
 
 			// Get the nvidia adapter
-			if (adapterDesc.VendorId == 4318)
+			if (adapterDesc.VendorId == 4318 || adapterDesc.VendorId == 4098)
 			{
 				m_pAdapter = std::move(adapters[i]);
 				break;
