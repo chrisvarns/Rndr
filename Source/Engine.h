@@ -45,7 +45,6 @@ private:
 	char**			m_CmdLineArgs;
 	int				m_WindowWidth;
 	int				m_WindowHeight;
-	std::string		m_ShaderDir;
 	std::string		m_MeshPath;
 
 	// SDL

@@ -72,22 +72,22 @@ int Engine::ParseArgs()
 		{
 			m_WindowHeight = stoi(arg);
 		}
-		else if (cmd == "shaderDir")
-		{
-			m_ShaderDir = arg;
-		}
 		else if (cmd == "mesh")
 		{
 			m_MeshPath = arg;
 		}
-		else return 1;
+		else
+		{
+			SDL_Log("Unknown argument \"%s\".", cmd.c_str());
+			return 0;
+		}
 	}
-	return 0;
+	return 1;
 }
 
 int Engine::Init()
 {
-	if (ParseArgs())
+	if (!ParseArgs())
 	{
 		SDL_Log("Failed to parse args");
 		return 1;
