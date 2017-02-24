@@ -12,7 +12,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 using namespace std;
-using namespace DirectX;
 
 // Special behavior for ++Colors
 RenderMode& operator++(RenderMode& rm) {

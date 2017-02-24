@@ -6,7 +6,6 @@
 #include <sdl/SDL.h>
 #include <sdl/SDL_syswm.h>
 #include <d3d11.h>
-#include <DirectXMath.h>
 #include "UniquePtr.h"
 #include <assimp/scene.h>
 #include <glm/glm.hpp>
