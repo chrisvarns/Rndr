@@ -137,6 +137,7 @@
     <ClInclude Include="Source\imconfig.h" />
     <ClInclude Include="Source\imgui.h" />
     <ClInclude Include="Source\imgui_internal.h" />
+    <ClInclude Include="Source\SharedPtr.h" />
     <ClInclude Include="Source\stb_rect_pack.h" />
     <ClInclude Include="Source\stb_textedit.h" />
     <ClInclude Include="Source\stb_truetype.h" />
