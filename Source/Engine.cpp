@@ -109,6 +109,7 @@ bool Engine::Init()
 		return false;
 	}
 
+#pragma region Adapter
 	UniqueReleasePtr<IDXGIFactory1> pFactory;
 	if (FAILED(CreateDXGIFactory1(__uuidof(IDXGIFactory1), (void**)pFactory.GetRef())))
 	{
@@ -150,6 +151,9 @@ bool Engine::Init()
 		return false;
 	};
 
+#pragma endregion
+
+#pragma region SwapChain
 	// Set up the device and swap chain
 	DXGI_SWAP_CHAIN_DESC swapChainDesc;
 	ZeroMemory(&swapChainDesc, sizeof(swapChainDesc));
@@ -184,6 +188,9 @@ bool Engine::Init()
 		SDL_Log("D3D11CreateDeviceAndSwapChain failed.");
 		return false;
 	}
+#pragma endregion
+
+#pragma region BackBuffer
 	
 	if (FAILED(m_pSwapChain->GetBuffer(0, __uuidof(m_pBackBufferRT.get()), (void**)m_pBackBufferRT.GetRef())))
 	{
@@ -197,6 +204,9 @@ bool Engine::Init()
 		return false;
 	}
 
+#pragma endregion
+
+#pragma region DepthStencil
 	// Set up the depth/stencil buffer
 	D3D11_TEXTURE2D_DESC depthStencilDesc;
 	ZeroMemory(&depthStencilDesc, sizeof(depthStencilDesc));
@@ -221,8 +231,11 @@ bool Engine::Init()
 		SDL_Log("CreateDepthStencilView failed.");
 		return false;
 	}
+#pragma endregion
+
 	m_pD3dContext->OMSetRenderTargets(1, m_pBackBufferRTView.GetRef(), m_pDepthStencilRTView.get());
 
+#pragma region DepthStencilState
 	D3D11_DEPTH_STENCIL_DESC depthStencilStateDesc;
 	ZeroMemory(&depthStencilStateDesc, sizeof(depthStencilStateDesc));
 	depthStencilStateDesc.DepthEnable = true;
@@ -246,7 +259,9 @@ bool Engine::Init()
 	}
 
 	m_pD3dContext->OMSetDepthStencilState(m_pDepthStencilState.get(), 0);
+#pragma endregion
 
+#pragma region Viewport
 	D3D11_VIEWPORT viewport;
 	ZeroMemory(&viewport, sizeof(viewport));
 	viewport.Width = static_cast<float>(m_WindowWidth);
@@ -256,8 +271,10 @@ bool Engine::Init()
 	viewport.TopLeftX = 0.f;
 	viewport.TopLeftY = 0.f;
 	m_pD3dContext->RSSetViewports(1, &viewport);
+#pragma endregion
 
 	// Raster state, defaults except CCW winding
+#pragma region RasterState
 	D3D11_RASTERIZER_DESC rasterDesc;
 	ZeroMemory(&rasterDesc, sizeof(rasterDesc));
 	rasterDesc.FillMode = D3D11_FILL_SOLID;
@@ -276,6 +293,7 @@ bool Engine::Init()
 		return false;
 	}
 	m_pD3dContext->RSSetState(m_pRasterState.get());
+#pragma endregion
 
 	return true;
 }
