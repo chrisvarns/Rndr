@@ -14,10 +14,14 @@ SharedDeletePtr<Mesh> Mesh::LoadMesh(aiMesh* aimesh, ID3D11Device* pD3dDevice)
 	mesh->m_ModelMatrix = glm::translate(glm::mat4(1.f), glm::vec3(0.f, 0.f, 1.f));
 	
 	std::vector<uint16_t> indices;
+
 	for (uint32_t i = 0; i < aimesh->mNumFaces; ++i)
 	{
 		const aiFace& face = aimesh->mFaces[i];
 		assert(face.mNumIndices == 3);
+		assert((face.mIndices[0] & 0xFFFF) == face.mIndices[0]);
+		assert((face.mIndices[1] & 0xFFFF) == face.mIndices[1]);
+		assert((face.mIndices[2] & 0xFFFF) == face.mIndices[2]);
 		indices.push_back(static_cast<uint16_t>(face.mIndices[0]));
 		indices.push_back(static_cast<uint16_t>(face.mIndices[1]));
 		indices.push_back(static_cast<uint16_t>(face.mIndices[2]));
