@@ -362,7 +362,6 @@ bool Engine::LoadContent()
 	const aiScene* m_pScene = assimp.ReadFile(m_MeshPath,
 		(aiProcess_ConvertToLeftHanded	// Convert to CW for DirectX.
 		| aiProcessPreset_TargetRealtime_MaxQuality)
-		&~ aiProcess_JoinIdenticalVertices
 	);
 
 	aiMesh* aimesh = m_pScene->mMeshes[0];
