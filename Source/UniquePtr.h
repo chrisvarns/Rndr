@@ -1,4 +1,5 @@
 #pragma once
+#include <memory>
 
 template <typename T>
 class UniquePtr : public std::unique_ptr<T, void(*)(T* ptr)>
@@ -15,8 +16,10 @@ template <typename T>
 class UniqueReleasePtr : public UniquePtr<T>
 {
 public:
-	// Default constructor, sets up Release destructor
+	// Default constructor, sets up destructor
 	UniqueReleasePtr() : UniquePtr<T>([](T* ptr) { ptr->Release(); }) {}
+
+	// Construct with a pointer
 	UniqueReleasePtr(T* ptr) : UniquePtr<T>([](T* ptr) { ptr->Release(); }) { reset(ptr); }
 };
 
@@ -24,6 +27,6 @@ template <typename T>
 class UniqueFreePtr : public UniquePtr<T>
 {
 public:
-	// Default constructor, sets up Release destructor
+	// Default constructor, sets up destructor
 	UniqueFreePtr() : UniquePtr<T>([](T* ptr) { free(ptr); }) {};
 };
