@@ -2,11 +2,12 @@
 
 #include <string>
 #include <vector>
-#include <memory>
 #include <sdl/SDL.h>
 #include <sdl/SDL_syswm.h>
 #include <d3d11.h>
 #include "UniquePtr.h"
+#include "SharedPtr.h"
+#include "Mesh.h"
 #include <assimp/scene.h>
 #include <glm/glm.hpp>
 
@@ -20,21 +21,14 @@ enum RenderMode {
 RenderMode& operator++(RenderMode& rm);
 RenderMode operator++(RenderMode& rm, int);
 
-struct ConstBuffer
-{
-	glm::mat4 mvpMatrix;
-	glm::ivec4 renderMode;
-};
-
 class Engine
 {
 public:
 	Engine(int argc, char** argv);
 	~Engine();
-	int Init();
-	int LoadContent();
-	int Execute();
-	int Release();
+	bool Init();
+	bool LoadContent();
+	bool Execute();
 
 private:
 	static std::vector<std::string> ms_Commands;
@@ -59,19 +53,13 @@ private:
 	UniqueReleasePtr<ID3D11DepthStencilView>	m_pDepthStencilRTView;
 	UniqueReleasePtr<ID3D11DepthStencilState>	m_pDepthStencilState;
 	UniqueReleasePtr<ID3D11RasterizerState>		m_pRasterState;
-
-	// Mesh stuff
-	UniqueReleasePtr<ID3D11Buffer>				m_pVertexBuffer;
-	UniqueReleasePtr<ID3D11Buffer>				m_pNormalBuffer;
-	UniqueReleasePtr<ID3D11Buffer>				m_pIndexBuffer;
 	UniqueReleasePtr<ID3D11InputLayout>			m_pInputLayout;
 	UniqueReleasePtr<ID3D11VertexShader>		m_pSolidColourVs;
 	UniqueReleasePtr<ID3D11PixelShader>			m_pSolidColourPs;
-	int											m_pNumFaces;
-	glm::mat4									m_ModelMatrix;
+
+	std::vector<SharedPtr<Mesh> >				m_Meshes;
 
 	// Camera stuff
-	UniqueReleasePtr<ID3D11Buffer>				m_pConstantBuffer;
 	glm::mat4									m_ViewMatrix;
 	float										m_ViewAngleH;
 	float										m_ViewAngleV;
@@ -81,10 +69,12 @@ private:
 	// Render Stuff
 	RenderMode									m_RenderMode;
 
-	int ParseArgs();
-	int HandleEvents();
-	int Update(float deltaTime);
-	int UpdateCamera(float deltaTime);
-	int Render();
+	bool ParseArgs();
+	
+	bool HandleEvents();
+	bool Update(float deltaTime);
+	bool UpdateCamera(float deltaTime);
+	bool Render();
+
 };
 

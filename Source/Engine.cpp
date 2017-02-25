@@ -32,7 +32,6 @@ Engine::Engine(int argc, char** argv)
 	, m_CmdLineArgs(argv)
 	, m_WindowWidth(1280)
 	, m_WindowHeight(720)
-	, m_ModelMatrix(1.f)
 	, m_ViewMatrix(1.f)
 	, m_ViewAngleV(0.f)
 	, m_ViewAngleH(0.f)
@@ -44,15 +43,9 @@ Engine::Engine(int argc, char** argv)
 
 Engine::~Engine()
 {
-	Release();
 }
 
-int Engine::Release()
-{
-	return 0;
-}
-
-int Engine::ParseArgs()
+bool Engine::ParseArgs()
 {
 	for (int i = 1; i < m_NumCmdLineArgs; ++i)
 	{
@@ -78,23 +71,23 @@ int Engine::ParseArgs()
 		else
 		{
 			SDL_Log("Unknown argument \"%s\".", cmd.c_str());
-			return 0;
+			return false;
 		}
 	}
-	return 1;
+	return true;
 }
 
-int Engine::Init()
+bool Engine::Init()
 {
 	if (!ParseArgs())
 	{
 		SDL_Log("Failed to parse args");
-		return 1;
+		return false;
 	}
 
 	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
 		SDL_Log("Unable to init Video: %s", SDL_GetError());
-		return 2;
+		return false;
 	}
 
 	m_pSdlWindow.reset(SDL_CreateWindow(
@@ -106,21 +99,21 @@ int Engine::Init()
 
 	if (!m_pSdlWindow) {
 		SDL_Log("Unable to create SDL Window: %s", SDL_GetError());
-		return 3;
+		return false;
 	}
 
 	ZeroMemory(&m_SdlWindowWMInfo, sizeof(SDL_SysWMinfo));
 	if (!SDL_GetWindowWMInfo(m_pSdlWindow.get(), &m_SdlWindowWMInfo))
 	{
 		SDL_Log("SDL_GetWindowWMInfo failed.");
-		return 4;
+		return false;
 	}
 
 	UniqueReleasePtr<IDXGIFactory1> pFactory;
 	if (FAILED(CreateDXGIFactory1(__uuidof(IDXGIFactory1), (void**)pFactory.GetRef())))
 	{
 		SDL_Log("CreateDXGIFactory1 failed.");
-		return 5;
+		return false;
 	}
 
 	IDXGIAdapter1* pTmpAdapter = NULL;
@@ -154,7 +147,7 @@ int Engine::Init()
 	if (!m_pAdapter)
 	{
 		SDL_Log("Failed to find device!!.");
-		return 6;
+		return false;
 	};
 
 	// Set up the device and swap chain
@@ -189,19 +182,19 @@ int Engine::Init()
 		m_pSwapChain.GetRef(), m_pD3dDevice.GetRef(), &featureLevel, m_pD3dContext.GetRef())))
 	{
 		SDL_Log("D3D11CreateDeviceAndSwapChain failed.");
-		return 7;
+		return false;
 	}
 	
 	if (FAILED(m_pSwapChain->GetBuffer(0, __uuidof(m_pBackBufferRT.get()), (void**)m_pBackBufferRT.GetRef())))
 	{
 		SDL_Log("Failed to get backbuffer from swapchain.");
-		return 8;
+		return false;
 	}
 
 	if (FAILED(m_pD3dDevice->CreateRenderTargetView(m_pBackBufferRT.get(), NULL, m_pBackBufferRTView.GetRef())))
 	{
 		SDL_Log("CreateRenderTargetView failed.");
-		return 9;
+		return false;
 	}
 
 	// Set up the depth/stencil buffer
@@ -221,12 +214,12 @@ int Engine::Init()
 	if (FAILED(m_pD3dDevice->CreateTexture2D(&depthStencilDesc, 0, m_pDepthStencilRT.GetRef())))
 	{
 		SDL_Log("CreateTexture2D failed.");
-		return 10;
+		return false;
 	}
 	if (FAILED(m_pD3dDevice->CreateDepthStencilView(m_pDepthStencilRT.get(), 0, m_pDepthStencilRTView.GetRef())))
 	{
 		SDL_Log("CreateDepthStencilView failed.");
-		return 11;
+		return false;
 	}
 	m_pD3dContext->OMSetRenderTargets(1, m_pBackBufferRTView.GetRef(), m_pDepthStencilRTView.get());
 
@@ -249,7 +242,7 @@ int Engine::Init()
 	if (FAILED(m_pD3dDevice->CreateDepthStencilState(&depthStencilStateDesc, m_pDepthStencilState.GetRef())))
 	{
 		SDL_Log("CreateDepthStencilState failed.");
-		return 12;
+		return false;
 	}
 
 	m_pD3dContext->OMSetDepthStencilState(m_pDepthStencilState.get(), 0);
@@ -280,19 +273,19 @@ int Engine::Init()
 	if (FAILED(m_pD3dDevice->CreateRasterizerState(&rasterDesc, m_pRasterState.GetRef())))
 	{
 		SDL_Log("CreateRasterizerState failed.");
-		return 13;
+		return false;
 	}
 	m_pD3dContext->RSSetState(m_pRasterState.get());
 
-	return 0;
+	return true;
 }
 
-int Engine::Execute()
+bool Engine::Execute()
 {
 	while (true)
 	{
 		// Handle events first
-		if (HandleEvents()) break;
+		if (!HandleEvents()) break;
 
 		// Update state
 		Update(1.f);
@@ -301,10 +294,10 @@ int Engine::Execute()
 		Render();
 	}
 
-	return 0;
+	return true;
 }
 
-int Engine::HandleEvents()
+bool Engine::HandleEvents()
 {
 	SDL_Event event;
 	while (SDL_PollEvent(&event))
@@ -313,7 +306,7 @@ int Engine::HandleEvents()
 		{
 		case SDL_QUIT:
 			SDL_Log("SDL_QUIT");
-			return 1;
+			return false;
 			break;
 
 		case SDL_MOUSEBUTTONDOWN:
@@ -341,10 +334,10 @@ int Engine::HandleEvents()
 		}
 	}
 
-	return 0;
+	return true;
 }
 
-int Engine::LoadContent()
+bool Engine::LoadContent()
 {
 	// Load the asset with assimp
 	Assimp::Importer assimp;
@@ -354,74 +347,15 @@ int Engine::LoadContent()
 		&~ aiProcess_JoinIdenticalVertices
 	);
 
-	aiMesh* mesh = m_pScene->mMeshes[0];
-	m_pNumFaces = mesh->mNumFaces;
-	m_ModelMatrix = glm::translate(glm::mat4(1.f), glm::vec3(0.f, 0.f, 1.f));
-
-	std::vector<uint16_t> indices;
-	for (uint32_t i = 0; i < mesh->mNumFaces; ++i)
+	aiMesh* aimesh = m_pScene->mMeshes[0];
+	SharedDeletePtr<Mesh> mesh = Mesh::LoadMesh(aimesh, m_pD3dDevice.get());
+	if (!mesh)
 	{
-		const aiFace& face = mesh->mFaces[i];
-		assert(face.mNumIndices == 3);
-		indices.push_back(static_cast<uint16_t>(face.mIndices[0]));
-		indices.push_back(static_cast<uint16_t>(face.mIndices[1]));
-		indices.push_back(static_cast<uint16_t>(face.mIndices[2]));
+		SDL_Log("Failed to load mesh.");
+		return false;
 	}
 
-	////////////////////
-	// Create vertex buffer
-	D3D11_BUFFER_DESC vertexDesc;
-	ZeroMemory(&vertexDesc, sizeof(vertexDesc));
-	vertexDesc.Usage = D3D11_USAGE_DEFAULT;
-	vertexDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	vertexDesc.ByteWidth = sizeof(*mesh->mVertices) * mesh->mNumVertices;
-
-	D3D11_SUBRESOURCE_DATA vertexData;
-	ZeroMemory(&vertexData, sizeof(vertexData));
-	vertexData.pSysMem = mesh->mVertices;
-
-	if (FAILED(m_pD3dDevice->CreateBuffer(&vertexDesc, &vertexData, m_pVertexBuffer.GetRef())))
-	{
-		SDL_Log("CreateBuffer (Vertex Pos) failed");
-		return 1;
-	}
-
-	////////////////////
-	// Create normals buffer
-	D3D11_BUFFER_DESC normalsDesc;
-	ZeroMemory(&normalsDesc, sizeof(normalsDesc));
-	normalsDesc.Usage = D3D11_USAGE_DEFAULT;
-	normalsDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	normalsDesc.ByteWidth = sizeof(*mesh->mNormals) * mesh->mNumVertices;
-
-	D3D11_SUBRESOURCE_DATA normalData;
-	ZeroMemory(&normalData, sizeof(normalData));
-	normalData.pSysMem = mesh->mNormals;
-
-	if (FAILED(m_pD3dDevice->CreateBuffer(&normalsDesc, &normalData, m_pNormalBuffer.GetRef())))
-	{
-		SDL_Log("CreateBuffer (Vertex Normal) failed");
-		return 1;
-	}
-
-	////////////////////
-	// Create Index buffer
-	D3D11_BUFFER_DESC indicesDesc;
-	ZeroMemory(&indicesDesc, sizeof(indicesDesc));
-	indicesDesc.Usage = D3D11_USAGE_DEFAULT;
-	indicesDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-	indicesDesc.ByteWidth = indices.size() * sizeof(uint16_t);
-
-	D3D11_SUBRESOURCE_DATA indicesData;
-	indicesData.pSysMem = indices.data();
-	indicesData.SysMemPitch = 0;
-	indicesData.SysMemSlicePitch = 0;
-
-	if (FAILED(m_pD3dDevice->CreateBuffer(&indicesDesc, &indicesData, m_pIndexBuffer.GetRef())))
-	{
-		SDL_Log("CreateBuffer (Index) failed");
-		return 1;
-	}
+	m_Meshes.push_back(mesh);
 
 	////////////////////
 	// Vertex Shader
@@ -433,7 +367,7 @@ int Engine::LoadContent()
 	if (vsFile == nullptr)
 	{
 		SDL_Log("SDL_RWFromFile failed");
-		return 2;
+		return false;
 	}
 	size_t vsDataSize = SDL_RWsize(vsFile);
 	UniqueFreePtr<void> vsData;
@@ -444,7 +378,7 @@ int Engine::LoadContent()
 	if (FAILED(m_pD3dDevice->CreateVertexShader(vsData.get(), vsDataSize, 0, m_pSolidColourVs.GetRef())))
 	{
 		SDL_Log("CreateVertexShader failed");
-		return 3;
+		return false;
 	}
 
 	////////////////////
@@ -457,7 +391,7 @@ int Engine::LoadContent()
 	if (FAILED(m_pD3dDevice->CreateInputLayout(vertexLayout, ARRAYSIZE(vertexLayout), vsData.get(), vsDataSize, m_pInputLayout.GetRef())))
 	{
 		SDL_Log("CreateInputLayout failed");
-		return 4;
+		return false;
 	}
 
 	////////////////////
@@ -466,7 +400,7 @@ int Engine::LoadContent()
 	if (psFile == nullptr)
 	{
 		SDL_Log("SDL_RWFromFile failed");
-		return 5;
+		return false;
 	}
 	size_t psDataSize = SDL_RWsize(psFile);
 	UniqueFreePtr<void> psData;
@@ -477,28 +411,13 @@ int Engine::LoadContent()
 	if (FAILED(m_pD3dDevice->CreatePixelShader(psData.get(), psDataSize, 0, m_pSolidColourPs.GetRef())))
 	{
 		SDL_Log("CreatePixelShader failed");
-		return 6;
+		return false;
 	}
 
-	////////////////////
-	// Constant buffer
-	D3D11_BUFFER_DESC cBufferDesc;
-	ZeroMemory(&cBufferDesc, sizeof(cBufferDesc));
-	cBufferDesc.ByteWidth = sizeof(ConstBuffer);
-	cBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-	cBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	cBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-
-	if (FAILED(m_pD3dDevice->CreateBuffer(&cBufferDesc, NULL, m_pConstantBuffer.GetRef())))
-	{
-		SDL_Log("CreateBuffer (Constant) failed!");
-		return 7;
-	}
-
-	return 0;
+	return true;
 }
 
-int Engine::UpdateCamera(float deltaTime)
+bool Engine::UpdateCamera(float deltaTime)
 {
 	// Wrap around/clamp the view angles
 	if (m_ViewAngleH > glm::two_pi<float>()) m_ViewAngleH -= glm::two_pi<float>();
@@ -531,28 +450,31 @@ int Engine::UpdateCamera(float deltaTime)
 		if (keyboardState[SDL_SCANCODE_Q]) m_ViewPos -= upDir * 0.001f;
 	}
 
-	//m_ViewMatrix = glm::lookAt(m_ViewPos, m_ViewPos + viewDir, glm::vec3(0.f, 1.f, 0.f));
 	m_ViewMatrix = glm::lookAt(m_ViewPos, m_ViewPos + viewDir, upDir);
-	return 0;
+	return true;
 }
 
-int Engine::Update(float deltaTime)
+bool Engine::Update(float deltaTime)
 {
 	UpdateCamera(deltaTime);
-	// Update the constant buffer...
-	ConstBuffer constBuffer;
-	constBuffer.mvpMatrix = m_ProjectionMatrix * m_ViewMatrix * m_ModelMatrix;
-	constBuffer.renderMode = glm::ivec4(static_cast<int>(m_RenderMode));
 
-	D3D11_MAPPED_SUBRESOURCE cBuffer;
-	m_pD3dContext->Map(m_pConstantBuffer.get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &cBuffer);
-	memcpy(cBuffer.pData, &constBuffer, sizeof(constBuffer));
-	m_pD3dContext->Unmap(m_pConstantBuffer.get(), 0);
+	for (auto meshItr = m_Meshes.begin(); meshItr != m_Meshes.end(); ++meshItr)
+	{
+		ConstBuffer constBuffer;
+		constBuffer.mvpMatrix = m_ProjectionMatrix * m_ViewMatrix * (*meshItr)->m_ModelMatrix;
+		constBuffer.renderMode = glm::ivec4(static_cast<int>(m_RenderMode));
 
-	return 0;
+		// Update the constant buffer...
+		D3D11_MAPPED_SUBRESOURCE cBuffer;
+		m_pD3dContext->Map((*meshItr)->m_pConstantBuffer.get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &cBuffer);
+		memcpy(cBuffer.pData, &constBuffer, sizeof(constBuffer));
+		m_pD3dContext->Unmap((*meshItr)->m_pConstantBuffer.get(), 0);
+	}
+
+	return true;
 }
 
-int Engine::Render()
+bool Engine::Render()
 {
 	FLOAT clearColor[4] = { 0.f, 0.f, 0.25f, 1.f };
 	m_pD3dContext->ClearRenderTargetView(m_pBackBufferRTView.get(), clearColor);
@@ -561,18 +483,21 @@ int Engine::Render()
 	unsigned int stride = sizeof(aiVector3D);
 	unsigned int offset = 0;
 
-	m_pD3dContext->IASetInputLayout(m_pInputLayout.get());
-	m_pD3dContext->IASetVertexBuffers(0, 1, m_pVertexBuffer.GetRef(), &stride, &offset);
-	m_pD3dContext->IASetVertexBuffers(1, 1, m_pNormalBuffer.GetRef(), &stride, &offset);
-	m_pD3dContext->IASetIndexBuffer(m_pIndexBuffer.get(), DXGI_FORMAT_R16_UINT, 0);
-	m_pD3dContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	m_pD3dContext->VSSetShader(m_pSolidColourVs.get(), 0, 0);
-	m_pD3dContext->PSSetShader(m_pSolidColourPs.get(), 0, 0);
-	m_pD3dContext->VSSetConstantBuffers(0, 1, m_pConstantBuffer.GetRef());
-	m_pD3dContext->PSSetConstantBuffers(0, 1, m_pConstantBuffer.GetRef());
-	m_pD3dContext->Draw(m_pNumFaces * 3, 0);
+	for (auto meshItr = m_Meshes.begin(); meshItr != m_Meshes.end(); ++meshItr)
+	{
+		m_pD3dContext->IASetInputLayout(m_pInputLayout.get());
+		m_pD3dContext->IASetVertexBuffers(0, 1, (*meshItr)->m_pVertexBuffer.GetRef(), &stride, &offset);
+		m_pD3dContext->IASetVertexBuffers(1, 1, (*meshItr)->m_pNormalBuffer.GetRef(), &stride, &offset);
+		m_pD3dContext->IASetIndexBuffer((*meshItr)->m_pIndexBuffer.get(), DXGI_FORMAT_R16_UINT, 0);
+		m_pD3dContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		m_pD3dContext->VSSetShader(m_pSolidColourVs.get(), 0, 0);
+		m_pD3dContext->PSSetShader(m_pSolidColourPs.get(), 0, 0);
+		m_pD3dContext->VSSetConstantBuffers(0, 1, (*meshItr)->m_pConstantBuffer.GetRef());
+		m_pD3dContext->PSSetConstantBuffers(0, 1, (*meshItr)->m_pConstantBuffer.GetRef());
+		m_pD3dContext->Draw((*meshItr)->m_pNumFaces * 3, 0);
+	}
 
 	m_pSwapChain->Present(0, 0);
 
-	return 0;
+	return true;
 }
