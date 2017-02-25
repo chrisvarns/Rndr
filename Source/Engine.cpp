@@ -273,13 +273,13 @@ bool Engine::Init()
 	m_pD3dContext->RSSetViewports(1, &viewport);
 #pragma endregion
 
-	// Raster state, defaults except CCW winding
 #pragma region RasterState
+	// Raster state (defaults currently)
 	D3D11_RASTERIZER_DESC rasterDesc;
 	ZeroMemory(&rasterDesc, sizeof(rasterDesc));
 	rasterDesc.FillMode = D3D11_FILL_SOLID;
 	rasterDesc.CullMode = D3D11_CULL_BACK;
-	rasterDesc.FrontCounterClockwise = true;
+	rasterDesc.FrontCounterClockwise = false;
 	rasterDesc.DepthBias = 0;
 	rasterDesc.SlopeScaledDepthBias = 0.f;
 	rasterDesc.DepthBiasClamp = 0.f;
@@ -512,7 +512,7 @@ bool Engine::Render()
 		m_pD3dContext->PSSetShader(m_pSolidColourPs.get(), 0, 0);
 		m_pD3dContext->VSSetConstantBuffers(0, 1, (*meshItr)->m_pConstantBuffer.GetRef());
 		m_pD3dContext->PSSetConstantBuffers(0, 1, (*meshItr)->m_pConstantBuffer.GetRef());
-		m_pD3dContext->Draw((*meshItr)->m_pNumFaces * 3, 0);
+		m_pD3dContext->DrawIndexed((*meshItr)->m_pNumFaces * 3, 0, 0);
 	}
 
 	m_pSwapChain->Present(0, 0);
