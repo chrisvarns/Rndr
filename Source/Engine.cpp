@@ -359,20 +359,22 @@ bool Engine::LoadContent()
 {
 	// Load the asset with assimp
 	Assimp::Importer assimp;
-	const aiScene* m_pScene = assimp.ReadFile(m_MeshPath,
+	const aiScene* pScene = assimp.ReadFile(m_MeshPath,
 		(aiProcess_ConvertToLeftHanded	// Convert to CW for DirectX.
 		| aiProcessPreset_TargetRealtime_MaxQuality)
 	);
 
-	aiMesh* aimesh = m_pScene->mMeshes[0];
-	SharedDeletePtr<Mesh> mesh = Mesh::LoadMesh(aimesh, m_pD3dDevice.get());
-	if (!mesh)
+	for (uint32_t meshIdx = 0; meshIdx < pScene->mNumMeshes; ++meshIdx)
 	{
-		SDL_Log("Failed to load mesh.");
-		return false;
+		aiMesh* aimesh = pScene->mMeshes[meshIdx];
+		SharedDeletePtr<Mesh> mesh = Mesh::LoadMesh(aimesh, m_pD3dDevice.get());
+		if (!mesh)
+		{
+			SDL_Log("Failed to load mesh.");
+			return false;
+		}
+		m_Meshes.push_back(mesh);
 	}
-
-	m_Meshes.push_back(mesh);
 
 	////////////////////
 	// Vertex Shader
