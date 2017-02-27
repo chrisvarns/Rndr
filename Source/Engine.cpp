@@ -483,7 +483,7 @@ bool Engine::Update(float deltaTime)
 
 		// Update the constant buffer...
 		D3D11_MAPPED_SUBRESOURCE cBuffer;
-		m_pD3dContext->Map((*meshItr)->m_pConstantBuffer.get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &cBuffer);
+		if (FAILED(m_pD3dContext->Map((*meshItr)->m_pConstantBuffer.get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &cBuffer))) return false;
 		memcpy(cBuffer.pData, &constBuffer, sizeof(constBuffer));
 		m_pD3dContext->Unmap((*meshItr)->m_pConstantBuffer.get(), 0);
 	}
