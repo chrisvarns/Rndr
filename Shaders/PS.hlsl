@@ -28,7 +28,7 @@ PSOut main(PSIn input)
 	//Normals
 	else if (RenderMode.x == 1)
 	{
-		output.Colour = float4(abs(input.Normal.xyz), 1);
+		output.Colour = float4(normalize(input.Normal.xyz) * 0.5 + 0.5, 1);
 	}
 	//Depth
 	else
