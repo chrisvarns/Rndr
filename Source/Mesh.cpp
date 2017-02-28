@@ -28,6 +28,12 @@ SharedDeletePtr<Mesh> Mesh::LoadMesh(aiMesh* aimesh, ID3D11Device* pD3dDevice)
 		indices.push_back(static_cast<uint16_t>(face.mIndices[2]));
 	}
 
+	// Sponza Hack
+	for (uint32_t i = 0; i < aimesh->mNumVertices; ++i)
+	{
+		aimesh->mVertices[i] /= 1000;
+	}
+
 	////////////////////
 	// Create vertex buffer
 	D3D11_BUFFER_DESC vertexDesc;
