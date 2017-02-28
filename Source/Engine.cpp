@@ -405,7 +405,8 @@ bool Engine::LoadContent()
 	D3D11_INPUT_ELEMENT_DESC vertexLayout[] =
 	{
 		{ "POSITION",	0,	DXGI_FORMAT_R32G32B32_FLOAT,	0,	0,	D3D11_INPUT_PER_VERTEX_DATA,	0 },
-		{ "NORMAL",		0,	DXGI_FORMAT_R32G32B32_FLOAT,	1,	0,	D3D11_INPUT_PER_VERTEX_DATA,	0 }
+		{ "NORMAL",		0,	DXGI_FORMAT_R32G32B32_FLOAT,	1,	0,	D3D11_INPUT_PER_VERTEX_DATA,	0 },
+		{ "TEXCOORD",	0,	DXGI_FORMAT_R32G32B32_FLOAT,	2,	0,	D3D11_INPUT_PER_VERTEX_DATA,	0 }
 	};
 	if (FAILED(m_pD3dDevice->CreateInputLayout(vertexLayout, ARRAYSIZE(vertexLayout), vsData.get(), vsDataSize, m_pInputLayout.GetRef())))
 	{
@@ -507,6 +508,7 @@ bool Engine::Render()
 		m_pD3dContext->IASetInputLayout(m_pInputLayout.get());
 		m_pD3dContext->IASetVertexBuffers(0, 1, (*meshItr)->m_pVertexBuffer.GetRef(), &stride, &offset);
 		m_pD3dContext->IASetVertexBuffers(1, 1, (*meshItr)->m_pNormalBuffer.GetRef(), &stride, &offset);
+		m_pD3dContext->IASetVertexBuffers(2, 1, (*meshItr)->m_pUvBuffer.GetRef(), &stride, &offset);
 		m_pD3dContext->IASetIndexBuffer((*meshItr)->m_pIndexBuffer.get(), DXGI_FORMAT_R16_UINT, 0);
 		m_pD3dContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		m_pD3dContext->VSSetShader(m_pSolidColourVs.get(), 0, 0);

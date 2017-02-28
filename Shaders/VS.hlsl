@@ -2,13 +2,14 @@ struct VSIn
 {
 	float4 Position : POSITION;
 	float4 Normal	: NORMAL;
+	float4 UV		: TEXCOORD0;
 };
 
 struct VSOut
 {
 	float4 Position	: SV_POSITION;
 	float4 Normal	: NORMAL;
-	float Depth		: TEXTURE0;
+	float4 UV		: TEXCOORD0;
 };
 
 cbuffer VSConstantBuffer : register(b0)
@@ -22,6 +23,6 @@ VSOut main(VSIn input)
 	VSOut output;
 	output.Position = mul(MvpMatrix, input.Position);
 	output.Normal = input.Normal;
-	output.Depth = output.Position.z / output.Position.w;
+	output.UV = input.UV;
 	return output;
 }

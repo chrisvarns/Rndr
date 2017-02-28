@@ -14,6 +14,7 @@
 enum RenderMode {
 	SolidColour = 0,
 	Normals,
+	UVs,
 	Depth,
 	END_OF_LIST
 };

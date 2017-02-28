@@ -2,7 +2,7 @@ struct PSIn
 {
 	float4 Position	: SV_POSITION;
 	float4 Normal	: NORMAL;
-	float Depth		: TEXTURE0;
+	float4 UV		: TEXCOORD0;
 };
 
 struct PSOut
@@ -30,10 +30,15 @@ PSOut main(PSIn input)
 	{
 		output.Colour = float4(normalize(input.Normal.xyz) * 0.5 + 0.5, 1);
 	}
-	//Depth
-	else
+	//UV
+	else if (RenderMode.x == 2)
 	{
-		output.Colour = float4(input.Depth.xxx, 1);
+		output.Colour = float4(frac(input.UV.xy), 0, 1);
+	}
+	//Depth
+	else if (RenderMode.x == 3)
+	{
+		output.Colour = float4(input.Position.zzz, 1);
 	}
 	return output;
 }

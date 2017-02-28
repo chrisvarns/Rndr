@@ -12,9 +12,10 @@ SharedDeletePtr<Mesh> Mesh::LoadMesh(aiMesh* aimesh, ID3D11Device* pD3dDevice)
 	SharedDeletePtr<Mesh> mesh(new Mesh());
 	mesh->m_pNumFaces = aimesh->mNumFaces;
 	mesh->m_ModelMatrix = glm::translate(glm::mat4(1.f), glm::vec3(0.f, 0.f, 1.f));
-	
-	std::vector<uint16_t> indices;
 
+	////////////////////
+	// Extract index buffer
+	std::vector<uint16_t> indices;
 	for (uint32_t i = 0; i < aimesh->mNumFaces; ++i)
 	{
 		const aiFace& face = aimesh->mFaces[i];
@@ -61,6 +62,28 @@ SharedDeletePtr<Mesh> Mesh::LoadMesh(aiMesh* aimesh, ID3D11Device* pD3dDevice)
 	{
 		SDL_Log("CreateBuffer (Vertex Normal) failed");
 		return NULL;
+	}
+
+	{
+	////////////////////
+	// Create TexCoord buffer
+	assert(aimesh->GetNumUVChannels() == 1);
+	D3D11_BUFFER_DESC uvDesc;
+	ZeroMemory(&uvDesc, sizeof(uvDesc));
+	uvDesc.Usage = D3D11_USAGE_DEFAULT;
+	uvDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	assert(aimesh->mTextureCoords[0]);
+	uvDesc.ByteWidth = sizeof(**aimesh->mTextureCoords) * aimesh->mNumVertices;
+
+	D3D11_SUBRESOURCE_DATA uvData;
+	ZeroMemory(&uvData, sizeof(uvData));
+	uvData.pSysMem = aimesh->mTextureCoords[0];
+
+	if (FAILED(pD3dDevice->CreateBuffer(&uvDesc, &uvData, mesh->m_pUvBuffer.GetRef())))
+	{
+		SDL_Log("CreateBuffer (UV) failed");
+		return NULL;
+	}
 	}
 
 	////////////////////
