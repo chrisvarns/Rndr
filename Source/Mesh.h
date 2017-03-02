@@ -21,12 +21,13 @@ public:
 
 	static SharedDeletePtr<Mesh>				LoadMesh(aiMesh* aiMesh, ID3D11Device* d3dDevice);
 
+	glm::mat4									m_ModelMatrix;
+
 	UniqueReleasePtr<ID3D11Buffer>				m_pVertexBuffer;
 	UniqueReleasePtr<ID3D11Buffer>				m_pIndexBuffer;
 	UniqueReleasePtr<ID3D11Buffer>				m_pNormalBuffer;
 	UniqueReleasePtr<ID3D11Buffer>				m_pUvBuffer;
 	UniqueReleasePtr<ID3D11Buffer>				m_pConstantBuffer;
 
-	glm::mat4									m_ModelMatrix;
 	uint32_t									m_NumFaces;
 };
