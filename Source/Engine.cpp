@@ -516,7 +516,7 @@ bool Engine::Render()
 		m_pD3dContext->IASetIndexBuffer((*meshItr)->m_pIndexBuffer.get(), DXGI_FORMAT_R16_UINT, 0);
 		m_pD3dContext->VSSetConstantBuffers(0, 1, (*meshItr)->m_pConstantBuffer.GetRef());
 		m_pD3dContext->PSSetConstantBuffers(0, 1, (*meshItr)->m_pConstantBuffer.GetRef());
-		m_pD3dContext->DrawIndexed((*meshItr)->m_pNumFaces * 3, 0, 0);
+		m_pD3dContext->DrawIndexed((*meshItr)->m_NumFaces * 3, 0, 0);
 	}
 
 	m_pSwapChain->Present(0, 0);

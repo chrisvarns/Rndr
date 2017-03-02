@@ -15,7 +15,7 @@ class Mesh
 {
 public:
 	Mesh()
-		: m_pNumFaces(0)
+		: m_NumFaces(0)
 		, m_ModelMatrix(1.f)
 	{}
 
@@ -27,6 +27,6 @@ public:
 	UniqueReleasePtr<ID3D11Buffer>				m_pUvBuffer;
 	UniqueReleasePtr<ID3D11Buffer>				m_pConstantBuffer;
 
-	int											m_pNumFaces;
 	glm::mat4									m_ModelMatrix;
+	uint32_t									m_NumFaces;
 };

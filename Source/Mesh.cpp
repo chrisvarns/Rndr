@@ -10,7 +10,7 @@
 SharedDeletePtr<Mesh> Mesh::LoadMesh(aiMesh* aimesh, ID3D11Device* pD3dDevice)
 {
 	SharedDeletePtr<Mesh> mesh(new Mesh());
-	mesh->m_pNumFaces = aimesh->mNumFaces;
+	mesh->m_NumFaces = aimesh->mNumFaces;
 	mesh->m_ModelMatrix = glm::translate(glm::mat4(1.f), glm::vec3(0.f, 0.f, 1.f));
 
 	////////////////////
