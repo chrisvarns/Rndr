@@ -500,19 +500,20 @@ bool Engine::Render()
 	m_pD3dContext->ClearRenderTargetView(m_pBackBufferRTView.get(), clearColor);
 	m_pD3dContext->ClearDepthStencilView(m_pDepthStencilRTView.get(), D3D11_CLEAR_DEPTH, 1.f, 0);
 
+	m_pD3dContext->IASetInputLayout(m_pInputLayout.get());
+	m_pD3dContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	m_pD3dContext->VSSetShader(m_pSolidColourVs.get(), 0, 0);
+	m_pD3dContext->PSSetShader(m_pSolidColourPs.get(), 0, 0);
+
 	unsigned int stride = sizeof(aiVector3D);
 	unsigned int offset = 0;
 
 	for (auto meshItr = m_Meshes.begin(); meshItr != m_Meshes.end(); ++meshItr)
 	{
-		m_pD3dContext->IASetInputLayout(m_pInputLayout.get());
 		m_pD3dContext->IASetVertexBuffers(0, 1, (*meshItr)->m_pVertexBuffer.GetRef(), &stride, &offset);
 		m_pD3dContext->IASetVertexBuffers(1, 1, (*meshItr)->m_pNormalBuffer.GetRef(), &stride, &offset);
 		m_pD3dContext->IASetVertexBuffers(2, 1, (*meshItr)->m_pUvBuffer.GetRef(), &stride, &offset);
 		m_pD3dContext->IASetIndexBuffer((*meshItr)->m_pIndexBuffer.get(), DXGI_FORMAT_R16_UINT, 0);
-		m_pD3dContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		m_pD3dContext->VSSetShader(m_pSolidColourVs.get(), 0, 0);
-		m_pD3dContext->PSSetShader(m_pSolidColourPs.get(), 0, 0);
 		m_pD3dContext->VSSetConstantBuffers(0, 1, (*meshItr)->m_pConstantBuffer.GetRef());
 		m_pD3dContext->PSSetConstantBuffers(0, 1, (*meshItr)->m_pConstantBuffer.GetRef());
 		m_pD3dContext->DrawIndexed((*meshItr)->m_pNumFaces * 3, 0, 0);
