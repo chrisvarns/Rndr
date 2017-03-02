@@ -38,7 +38,9 @@ PSOut main(PSIn input)
 	//Depth
 	else if (RenderMode.x == 3)
 	{
-		output.Colour = float4(input.Position.zzz, 1);
+		float3 sRGB = input.Position.zzz;
+		float3 RGB = sRGB * (sRGB * (sRGB * 0.305306011 + 0.682171111) + 0.012522878);
+		output.Colour = float4(RGB, 1);
 	}
 	return output;
 }
