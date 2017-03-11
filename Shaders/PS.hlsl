@@ -36,7 +36,7 @@ PSOut main(PSIn input)
 		output.Colour = float4(frac(input.UV.xy), 0, 1);
 	}
 	//Depth
-	else if (RenderMode.x == 3)
+	else //(RenderMode.x == 3)
 	{
 		float3 sRGB = input.Position.zzz;
 		float3 RGB = sRGB * (sRGB * (sRGB * 0.305306011 + 0.682171111) + 0.012522878);
