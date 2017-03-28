@@ -128,6 +128,7 @@
   <ItemGroup>
     <ClCompile Include="Source\Engine.cpp" />
     <ClCompile Include="Source\imgui.cpp" />
+    <ClCompile Include="Source\ImguiIntegration.cpp" />
     <ClCompile Include="Source\imgui_demo.cpp" />
     <ClCompile Include="Source\imgui_draw.cpp" />
     <ClCompile Include="Source\main.cpp" />
@@ -137,6 +138,7 @@
     <ClInclude Include="Source\Engine.h" />
     <ClInclude Include="Source\imconfig.h" />
     <ClInclude Include="Source\imgui.h" />
+    <ClInclude Include="Source\ImguiIntegration.h" />
     <ClInclude Include="Source\imgui_internal.h" />
     <ClInclude Include="Source\Mesh.h" />
     <ClInclude Include="Source\SharedPtr.h" />
