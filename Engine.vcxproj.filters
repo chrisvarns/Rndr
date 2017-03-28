@@ -20,6 +20,8 @@
     <FxCompile Include="Shaders\VS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="Shaders\ImGuiVS.hlsl" />
+    <FxCompile Include="Shaders\ImGuiPS.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="NatvisFile.natvis" />
