@@ -401,10 +401,6 @@ bool Engine::LoadContent()
 
 	////////////////////
 	// Vertex Shader
-	DWORD shaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
-#if defined(DEBUG) || defined(_DEBUG)
-	shaderFlags |= D3DCOMPILE_DEBUG;
-#endif
 	SDL_RWops* vsFile = SDL_RWFromFile((std::string(SDL_GetBasePath()) + "\\VS.cso").c_str(), "rb");
 	if (vsFile == nullptr)
 	{
