@@ -76,6 +76,11 @@ private:
 	bool Update(float deltaTime);
 	bool UpdateCamera(float deltaTime);
 	bool Render();
+	
+	void ResizeWindow(int width, int height);
+	void HandleWindowEvent(const SDL_Event& event);
+	void UpdateProjectionMatrix();
+	void RecreateBackBufferRTAndView();
 
 };
 

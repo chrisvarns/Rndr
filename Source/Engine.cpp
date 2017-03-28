@@ -98,8 +98,6 @@ bool Engine::Init()
 		SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
 		m_WindowWidth, m_WindowHeight, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE));
 
-	m_ProjectionMatrix = glm::perspective(45.f, (float)m_WindowWidth / m_WindowHeight, 0.1f, 100.f);
-
 	if (!m_pSdlWindow) {
 		SDL_Log("Unable to create SDL Window: %s", SDL_GetError());
 		return false;
@@ -193,50 +191,7 @@ bool Engine::Init()
 	}
 #pragma endregion
 
-#pragma region BackBuffer
-	
-	if (FAILED(m_pSwapChain->GetBuffer(0, __uuidof(m_pBackBufferRT.get()), (void**)m_pBackBufferRT.GetRef())))
-	{
-		SDL_Log("Failed to get backbuffer from swapchain.");
-		return false;
-	}
-
-	if (FAILED(m_pD3dDevice->CreateRenderTargetView(m_pBackBufferRT.get(), NULL, m_pBackBufferRTView.GetRef())))
-	{
-		SDL_Log("CreateRenderTargetView failed.");
-		return false;
-	}
-
-#pragma endregion
-
-#pragma region DepthStencil
-	// Set up the depth/stencil buffer
-	D3D11_TEXTURE2D_DESC depthStencilDesc;
-	ZeroMemory(&depthStencilDesc, sizeof(depthStencilDesc));
-	depthStencilDesc.Width = m_WindowWidth;
-	depthStencilDesc.Height = m_WindowHeight;
-	depthStencilDesc.MipLevels = 1;
-	depthStencilDesc.ArraySize = 1;
-	depthStencilDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-	depthStencilDesc.SampleDesc.Count = 1;
-	depthStencilDesc.SampleDesc.Quality = 0;
-	depthStencilDesc.Usage = D3D11_USAGE_DEFAULT;
-	depthStencilDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-	depthStencilDesc.CPUAccessFlags = 0;
-	depthStencilDesc.MiscFlags = 0;
-	if (FAILED(m_pD3dDevice->CreateTexture2D(&depthStencilDesc, 0, m_pDepthStencilRT.GetRef())))
-	{
-		SDL_Log("CreateTexture2D failed.");
-		return false;
-	}
-	if (FAILED(m_pD3dDevice->CreateDepthStencilView(m_pDepthStencilRT.get(), 0, m_pDepthStencilRTView.GetRef())))
-	{
-		SDL_Log("CreateDepthStencilView failed.");
-		return false;
-	}
-#pragma endregion
-
-	m_pD3dContext->OMSetRenderTargets(1, m_pBackBufferRTView.GetRef(), m_pDepthStencilRTView.get());
+	RecreateBackBufferRTAndView();
 
 #pragma region DepthStencilState
 	D3D11_DEPTH_STENCIL_DESC depthStencilStateDesc;
@@ -262,18 +217,6 @@ bool Engine::Init()
 	}
 
 	m_pD3dContext->OMSetDepthStencilState(m_pDepthStencilState.get(), 0);
-#pragma endregion
-
-#pragma region Viewport
-	D3D11_VIEWPORT viewport;
-	ZeroMemory(&viewport, sizeof(viewport));
-	viewport.Width = static_cast<float>(m_WindowWidth);
-	viewport.Height = static_cast<float>(m_WindowHeight);
-	viewport.MinDepth = 0.f;
-	viewport.MaxDepth = 1.f;
-	viewport.TopLeftX = 0.f;
-	viewport.TopLeftY = 0.f;
-	m_pD3dContext->RSSetViewports(1, &viewport);
 #pragma endregion
 
 #pragma region RasterState
@@ -320,18 +263,91 @@ bool Engine::Execute()
 	return true;
 }
 
+void Engine::UpdateProjectionMatrix()
+{
+	m_ProjectionMatrix = glm::perspective(45.f, (float)m_WindowWidth / m_WindowHeight, 0.1f, 100.f);
+}
+
+void Engine::RecreateBackBufferRTAndView()
+{
+	assert(SUCCEEDED(m_pSwapChain->GetBuffer(0, __uuidof(m_pBackBufferRT.get()), (void**)m_pBackBufferRT.GetRef())));
+	assert(SUCCEEDED(m_pD3dDevice->CreateRenderTargetView(m_pBackBufferRT.get(), NULL, m_pBackBufferRTView.GetRef())));
+
+	// Set up the depth/stencil buffer
+	D3D11_TEXTURE2D_DESC depthStencilDesc;
+	ZeroMemory(&depthStencilDesc, sizeof(depthStencilDesc));
+	depthStencilDesc.Width = m_WindowWidth;
+	depthStencilDesc.Height = m_WindowHeight;
+	depthStencilDesc.MipLevels = 1;
+	depthStencilDesc.ArraySize = 1;
+	depthStencilDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	depthStencilDesc.SampleDesc.Count = 1;
+	depthStencilDesc.SampleDesc.Quality = 0;
+	depthStencilDesc.Usage = D3D11_USAGE_DEFAULT;
+	depthStencilDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+	depthStencilDesc.CPUAccessFlags = 0;
+	depthStencilDesc.MiscFlags = 0;
+
+	if (m_pDepthStencilRTView) m_pDepthStencilRTView->Release();
+	if (m_pDepthStencilRT) m_pDepthStencilRT->Release();
+
+	assert(SUCCEEDED(m_pD3dDevice->CreateTexture2D(&depthStencilDesc, 0, m_pDepthStencilRT.GetRef())));
+	assert(SUCCEEDED(m_pD3dDevice->CreateDepthStencilView(m_pDepthStencilRT.get(), 0, m_pDepthStencilRTView.GetRef())));
+
+	m_pD3dContext->OMSetRenderTargets(1, m_pBackBufferRTView.GetRef(), m_pDepthStencilRTView.get());
+
+	D3D11_VIEWPORT viewport;
+	ZeroMemory(&viewport, sizeof(viewport));
+	viewport.Width = static_cast<float>(m_WindowWidth);
+	viewport.Height = static_cast<float>(m_WindowHeight);
+	viewport.MinDepth = 0.f;
+	viewport.MaxDepth = 1.f;
+	viewport.TopLeftX = 0.f;
+	viewport.TopLeftY = 0.f;
+	m_pD3dContext->RSSetViewports(1, &viewport);
+
+	UpdateProjectionMatrix();
+}
+
+void Engine::ResizeWindow(int width, int height)
+{
+	m_WindowWidth = width;
+	m_WindowHeight = height;
+
+	m_pBackBufferRTView->Release();
+	m_pBackBufferRT->Release();
+	m_pSwapChain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0);
+
+	RecreateBackBufferRTAndView();
+}
+
+void Engine::HandleWindowEvent(const SDL_Event& event)
+{
+	switch (event.window.event)
+	{
+	case SDL_WINDOWEVENT_RESIZED:
+		ResizeWindow(event.window.data1, event.window.data2);
+		break;
+	default:
+		break;
+	}
+}
+
 bool Engine::HandleEvents()
 {
 	SDL_Event event;
 	while (SDL_PollEvent(&event))
 	{
 		ImguiIntegration_ProcessEvent(&event);
-
 		switch (event.type)
 		{
 		case SDL_QUIT:
 			SDL_Log("SDL_QUIT");
 			return false;
+			break;
+
+		case SDL_WINDOWEVENT:
+			HandleWindowEvent(event);
 			break;
 
 		case SDL_MOUSEBUTTONDOWN:
