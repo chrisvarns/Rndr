@@ -102,8 +102,6 @@ SharedDeletePtr<Mesh> Mesh::LoadMesh(aiMesh* aimesh, ID3D11Device* pD3dDevice)
 
 	D3D11_SUBRESOURCE_DATA indicesData;
 	indicesData.pSysMem = indices.data();
-	indicesData.SysMemPitch = 0;
-	indicesData.SysMemSlicePitch = 0;
 
 	if (FAILED(pD3dDevice->CreateBuffer(&indicesDesc, &indicesData, mesh->m_pIndexBuffer.GetRef())))
 	{
