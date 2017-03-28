@@ -1,6 +1,7 @@
 #include "Engine.h"
 #include "ImguiIntegration.h"
 #include "imgui.h"
+#include "Utils.h"
 #include <sdl/SDL.h>
 #include <string>
 #include <sstream>
@@ -401,23 +402,9 @@ bool Engine::LoadContent()
 
 	////////////////////
 	// Vertex Shader
-	SDL_RWops* vsFile = SDL_RWFromFile((std::string(SDL_GetBasePath()) + "\\VS.cso").c_str(), "rb");
-	if (vsFile == nullptr)
-	{
-		SDL_Log("SDL_RWFromFile failed");
-		return false;
-	}
-	size_t vsDataSize = SDL_RWsize(vsFile);
 	UniqueFreePtr<void> vsData;
-	vsData.reset(malloc(vsDataSize));
-	SDL_RWread(vsFile, vsData.get(), vsDataSize, 1);
-	SDL_RWclose(vsFile);
-
-	if (FAILED(m_pD3dDevice->CreateVertexShader(vsData.get(), vsDataSize, 0, m_pSolidColourVs.GetRef())))
-	{
-		SDL_Log("CreateVertexShader failed");
-		return false;
-	}
+	size_t vsDataSize = ShaderUtils::LoadShaderBinary("VS.cso", vsData.GetRef());
+	assert(SUCCEEDED(m_pD3dDevice->CreateVertexShader(vsData.get(), vsDataSize, 0, m_pSolidColourVs.GetRef())));
 
 	////////////////////
 	// Vertex input layout
@@ -435,23 +422,9 @@ bool Engine::LoadContent()
 
 	////////////////////
 	// Pixel Shader
-	SDL_RWops* psFile = SDL_RWFromFile((std::string(SDL_GetBasePath()) + "\\PS.cso").c_str(), "rb");
-	if (psFile == nullptr)
-	{
-		SDL_Log("SDL_RWFromFile failed");
-		return false;
-	}
-	size_t psDataSize = SDL_RWsize(psFile);
 	UniqueFreePtr<void> psData;
-	psData.reset(malloc(psDataSize));
-	SDL_RWread(psFile, psData.get(), psDataSize, 1);
-	SDL_RWclose(psFile);
-
-	if (FAILED(m_pD3dDevice->CreatePixelShader(psData.get(), psDataSize, 0, m_pSolidColourPs.GetRef())))
-	{
-		SDL_Log("CreatePixelShader failed");
-		return false;
-	}
+	size_t psDataSize = ShaderUtils::LoadShaderBinary("PS.cso", psData.GetRef());
+	assert(SUCCEEDED(m_pD3dDevice->CreatePixelShader(psData.get(), psDataSize, 0, m_pSolidColourPs.GetRef())));
 
 	return true;
 }

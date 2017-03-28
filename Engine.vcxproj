@@ -141,6 +141,7 @@
     <ClCompile Include="Source\imgui_draw.cpp" />
     <ClCompile Include="Source\main.cpp" />
     <ClCompile Include="Source\Mesh.cpp" />
+    <ClCompile Include="Source\Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Engine.h" />
@@ -154,6 +155,7 @@
     <ClInclude Include="Source\stb_textedit.h" />
     <ClInclude Include="Source\stb_truetype.h" />
     <ClInclude Include="Source\UniquePtr.h" />
+    <ClInclude Include="Source\Utils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
