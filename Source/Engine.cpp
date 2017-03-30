@@ -336,6 +336,8 @@ void Engine::HandleWindowEvent(const SDL_Event& event)
 
 bool Engine::HandleEvents()
 {
+	ImGuiIO io = ImGui::GetIO();
+
 	SDL_Event event;
 	while (SDL_PollEvent(&event))
 	{
@@ -352,23 +354,27 @@ bool Engine::HandleEvents()
 			break;
 
 		case SDL_MOUSEBUTTONDOWN:
-			if (event.button.button == SDL_BUTTON_RIGHT) SDL_SetRelativeMouseMode(SDL_TRUE);
+			if (!io.WantCaptureMouse && event.button.button == SDL_BUTTON_RIGHT) SDL_SetRelativeMouseMode(SDL_TRUE);
 			break;
 		case SDL_MOUSEBUTTONUP:
-			if (event.button.button == SDL_BUTTON_RIGHT) SDL_SetRelativeMouseMode(SDL_FALSE);
+			if (!io.WantCaptureMouse && event.button.button == SDL_BUTTON_RIGHT) SDL_SetRelativeMouseMode(SDL_FALSE);
 			break;
 		case SDL_MOUSEMOTION:
-			if (SDL_GetRelativeMouseMode())
+			if (!io.WantCaptureMouse && SDL_GetRelativeMouseMode())
 			{
 				m_ViewAngleH += event.motion.xrel * 0.001;
 				m_ViewAngleV -= event.motion.yrel * 0.001;				
 			}
 			break;
 		case SDL_KEYDOWN:
-			switch (event.key.keysym.sym)
+			if (!io.WantCaptureMouse)
 			{
-			case SDLK_r:
-				++m_RenderMode;
+				switch (event.key.keysym.sym)
+				{
+				case SDLK_r:
+					++m_RenderMode;
+					break;
+				}
 			}
 			break;
 		default:
