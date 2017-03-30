@@ -70,7 +70,6 @@ SharedDeletePtr<Mesh> Mesh::LoadMesh(aiMesh* aimesh, ID3D11Device* pD3dDevice)
 		return NULL;
 	}
 
-	{
 	////////////////////
 	// Create TexCoord buffer
 	assert(aimesh->GetNumUVChannels() == 1);
@@ -89,7 +88,6 @@ SharedDeletePtr<Mesh> Mesh::LoadMesh(aiMesh* aimesh, ID3D11Device* pD3dDevice)
 	{
 		SDL_Log("CreateBuffer (UV) failed");
 		return NULL;
-	}
 	}
 
 	////////////////////
