@@ -1,5 +1,6 @@
 #include "Engine.h"
 #include "ImguiIntegration.h"
+#include "ImguiMenus.h"
 #include "imgui.h"
 #include "Utils.h"
 #include <sdl/SDL.h>
@@ -362,8 +363,8 @@ bool Engine::HandleEvents()
 		case SDL_MOUSEMOTION:
 			if (!io.WantCaptureMouse && SDL_GetRelativeMouseMode())
 			{
-				m_ViewAngleH += event.motion.xrel * 0.001f;
-				m_ViewAngleV -= event.motion.yrel * 0.001f;
+				m_ViewAngleH += event.motion.xrel * ImGui::Integration::g_Controls_Camera_Sensitivity;
+				m_ViewAngleV -= event.motion.yrel * ImGui::Integration::g_Controls_Camera_Sensitivity;
 			}
 			break;
 		case SDL_KEYDOWN:
@@ -460,12 +461,12 @@ bool Engine::UpdateCamera(float deltaTime)
 	if (SDL_GetRelativeMouseMode())
 	{
 		const uint8_t* keyboardState = SDL_GetKeyboardState(NULL);
-		if (keyboardState[SDL_SCANCODE_W]) m_ViewPos += viewDir * 0.001f;
-		if (keyboardState[SDL_SCANCODE_S]) m_ViewPos -= viewDir * 0.001f;
-		if (keyboardState[SDL_SCANCODE_A]) m_ViewPos -= rightDir * 0.001f;
-		if (keyboardState[SDL_SCANCODE_D]) m_ViewPos += rightDir * 0.001f;
-		if (keyboardState[SDL_SCANCODE_E]) m_ViewPos += upDir * 0.001f;
-		if (keyboardState[SDL_SCANCODE_Q]) m_ViewPos -= upDir * 0.001f;
+		if (keyboardState[SDL_SCANCODE_W]) m_ViewPos += viewDir * ImGui::Integration::g_Controls_Camera_Speed;
+		if (keyboardState[SDL_SCANCODE_S]) m_ViewPos -= viewDir * ImGui::Integration::g_Controls_Camera_Speed;
+		if (keyboardState[SDL_SCANCODE_A]) m_ViewPos -= rightDir * ImGui::Integration::g_Controls_Camera_Speed;
+		if (keyboardState[SDL_SCANCODE_D]) m_ViewPos += rightDir * ImGui::Integration::g_Controls_Camera_Speed;
+		if (keyboardState[SDL_SCANCODE_E]) m_ViewPos += upDir * ImGui::Integration::g_Controls_Camera_Speed;
+		if (keyboardState[SDL_SCANCODE_Q]) m_ViewPos -= upDir * ImGui::Integration::g_Controls_Camera_Speed;
 	}
 
 	m_ViewMatrix = glm::lookAt(m_ViewPos, m_ViewPos + viewDir, upDir);
@@ -520,7 +521,8 @@ bool Engine::Render()
 	}
 
 	//Imgui
-	ImGui::ShowTestWindow();
+	//ImGui::ShowTestWindow();
+	ImGui::Integration::RenderMenus();
 	ImGui::Render();
 
 	m_pSwapChain->Present(0, 0);
