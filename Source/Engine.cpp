@@ -46,7 +46,7 @@ Engine::Engine(int argc, char** argv)
 
 Engine::~Engine()
 {
-	ImguiIntegration_Shutdown();
+	ImGui::Integration::Shutdown();
 }
 
 bool Engine::ParseArgs()
@@ -242,7 +242,7 @@ bool Engine::Init()
 	m_pD3dContext->RSSetState(m_pRasterState.get());
 #pragma endregion
 
-	ImguiIntegration_Init(m_pSdlWindow.get(), m_pD3dDevice.get(), m_pD3dContext.get());
+	ImGui::Integration::Init(m_pSdlWindow.get(), m_pD3dDevice.get(), m_pD3dContext.get());
 
 	return true;
 }
@@ -341,7 +341,7 @@ bool Engine::HandleEvents()
 	SDL_Event event;
 	while (SDL_PollEvent(&event))
 	{
-		ImguiIntegration_ProcessEvent(&event);
+		ImGui::Integration::ProcessEvent(&event);
 		switch (event.type)
 		{
 		case SDL_QUIT:
@@ -474,6 +474,8 @@ bool Engine::UpdateCamera(float deltaTime)
 
 bool Engine::Update(float deltaTime)
 {
+	ImGui::Integration::NewFrame(m_pSdlWindow.get());
+
 	UpdateCamera(deltaTime);
 
 	for (auto meshItr = m_Meshes.begin(); meshItr != m_Meshes.end(); ++meshItr)
@@ -488,8 +490,6 @@ bool Engine::Update(float deltaTime)
 		memcpy(cBuffer.pData, &constBuffer, sizeof(constBuffer));
 		m_pD3dContext->Unmap((*meshItr)->m_pConstantBuffer.get(), 0);
 	}
-
-	ImguiIntegration_NewFrame(m_pSdlWindow.get());
 
 	return true;
 }

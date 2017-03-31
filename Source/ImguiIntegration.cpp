@@ -14,6 +14,9 @@
 #define DIRECTINPUT_VERSION 0x0800
 #include <dinput.h>
 
+namespace ImGui::Integration
+{
+
 // Data
 static INT64                    g_Time = 0;
 static INT64                    g_TicksPerSecond = 0;
@@ -43,7 +46,7 @@ struct VERTEX_CONSTANT_BUFFER
 // This is the main rendering function that you have to implement and provide to ImGui (via setting up 'RenderDrawListsFn' in the ImGuiIO structure)
 // If text or lines are blurry when integrating ImGui in your engine:
 // - in your Render function, try translating your projection matrix by (0.5f,0.5f) or (0.375f,0.375f)
-void ImguiIntegration_RenderDrawLists(ImDrawData* draw_data)
+void RenderDrawLists(ImDrawData* draw_data)
 {
 	ID3D11DeviceContext* ctx = g_pd3dDeviceContext;
 
@@ -230,7 +233,7 @@ void ImguiIntegration_RenderDrawLists(ImDrawData* draw_data)
 	ctx->IASetInputLayout(old.InputLayout); if (old.InputLayout) old.InputLayout->Release();
 }
 
-bool ImguiIntegration_ProcessEvent(SDL_Event* event)
+bool ProcessEvent(SDL_Event* event)
 {
 	ImGuiIO& io = ImGui::GetIO();
 	switch (event->type)
@@ -270,7 +273,7 @@ bool ImguiIntegration_ProcessEvent(SDL_Event* event)
 	return false;
 }
 
-static void ImguiIntegration_CreateFontsTexture()
+static void CreateFontsTexture()
 {
 	// Build texture atlas
 	ImGuiIO& io = ImGui::GetIO();
@@ -329,12 +332,12 @@ static void ImguiIntegration_CreateFontsTexture()
 	}
 }
 
-bool    ImguiIntegration_CreateDeviceObjects()
+bool    CreateDeviceObjects()
 {
 	if (!g_pd3dDevice)
 		return false;
 	if (g_pFontSampler)
-		ImguiIntegration_InvalidateDeviceObjects();
+		InvalidateDeviceObjects();
 
 	// By using D3DCompile() from <d3dcompiler.h> / d3dcompiler.lib, we introduce a dependency to a given version of d3dcompiler_XX.dll (see D3DCOMPILER_DLL_A)
 	// If you would like to use this DX11 sample code but remove this dependency you can: 
@@ -419,12 +422,12 @@ bool    ImguiIntegration_CreateDeviceObjects()
 		g_pd3dDevice->CreateDepthStencilState(&desc, &g_pDepthStencilState);
 	}
 
-	ImguiIntegration_CreateFontsTexture();
+	CreateFontsTexture();
 
 	return true;
 }
 
-void    ImguiIntegration_InvalidateDeviceObjects()
+void    InvalidateDeviceObjects()
 {
 	if (!g_pd3dDevice)
 		return;
@@ -443,17 +446,17 @@ void    ImguiIntegration_InvalidateDeviceObjects()
 	if (g_pVertexShader) { g_pVertexShader->Release(); g_pVertexShader = NULL; }
 }
 
-static const char* ImguiIntegration_GetClipboardText(void*)
+static const char* GetClipboardText(void*)
 {
 	return SDL_GetClipboardText();
 }
 
-static void ImguiIntegration_SetClipboardText(void*, const char* text)
+static void SetClipboardText(void*, const char* text)
 {
 	SDL_SetClipboardText(text);
 }
 
-bool    ImguiIntegration_Init(SDL_Window* window, ID3D11Device* device, ID3D11DeviceContext* device_context)
+bool    Init(SDL_Window* window, ID3D11Device* device, ID3D11DeviceContext* device_context)
 {
 	g_pd3dDevice = device;
 	g_pd3dDeviceContext = device_context;
@@ -479,9 +482,9 @@ bool    ImguiIntegration_Init(SDL_Window* window, ID3D11Device* device, ID3D11De
 	io.KeyMap[ImGuiKey_Y] = SDLK_y;
 	io.KeyMap[ImGuiKey_Z] = SDLK_z;
 
-	io.RenderDrawListsFn = ImguiIntegration_RenderDrawLists;  // Alternatively you can set this to NULL and call ImGui::GetDrawData() after ImGui::Render() to get the same ImDrawData pointer.
-	io.SetClipboardTextFn = ImguiIntegration_SetClipboardText;
-	io.GetClipboardTextFn = ImguiIntegration_GetClipboardText;
+	io.RenderDrawListsFn = RenderDrawLists;  // Alternatively you can set this to NULL and call ImGui::GetDrawData() after ImGui::Render() to get the same ImDrawData pointer.
+	io.SetClipboardTextFn = SetClipboardText;
+	io.GetClipboardTextFn = GetClipboardText;
 	io.ClipboardUserData = NULL;
 	
 #ifdef _WIN32
@@ -496,18 +499,18 @@ bool    ImguiIntegration_Init(SDL_Window* window, ID3D11Device* device, ID3D11De
 	return true;
 }
 
-void ImguiIntegration_Shutdown()
+void Shutdown()
 {
-	ImguiIntegration_InvalidateDeviceObjects();
+	InvalidateDeviceObjects();
 	ImGui::Shutdown();
 	g_pd3dDevice = NULL;
 	g_pd3dDeviceContext = NULL;
 }
 
-void ImguiIntegration_NewFrame(SDL_Window* window)
+void NewFrame(SDL_Window* window)
 {
 	if (!g_pFontSampler)
-		ImguiIntegration_CreateDeviceObjects();
+		CreateDeviceObjects();
 
 	ImGuiIO& io = ImGui::GetIO();
 
@@ -547,3 +550,5 @@ void ImguiIntegration_NewFrame(SDL_Window* window)
 	// Start the frame
 	ImGui::NewFrame();
 }
+
+} // namespace Imgui::Integration
