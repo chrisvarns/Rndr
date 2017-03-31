@@ -7,7 +7,7 @@ namespace ImGui::Integration
 
 static bool g_RenderCameraControls = false;
 
-extern float g_Controls_Camera_Speed = 0.001f;
+extern float g_Controls_Camera_Speed = 0.01f;
 extern float g_Controls_Camera_Sensitivity = 0.001f;
 
 void RenderMenus()
