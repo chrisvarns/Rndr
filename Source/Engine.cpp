@@ -362,8 +362,8 @@ bool Engine::HandleEvents()
 		case SDL_MOUSEMOTION:
 			if (!io.WantCaptureMouse && SDL_GetRelativeMouseMode())
 			{
-				m_ViewAngleH += event.motion.xrel * 0.001;
-				m_ViewAngleV -= event.motion.yrel * 0.001;				
+				m_ViewAngleH += event.motion.xrel * 0.001f;
+				m_ViewAngleV -= event.motion.yrel * 0.001f;
 			}
 			break;
 		case SDL_KEYDOWN:
