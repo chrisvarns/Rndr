@@ -1,7 +1,7 @@
 #include "Engine.h"
-#include "ImguiIntegration.h"
-#include "ImguiMenus.h"
-#include "imgui.h"
+#include "RHI/D3D11/ImguiIntegration.h"
+#include "Imgui/ImguiMenus.h"
+#include "Imgui/imgui.h"
 #include "Utils.h"
 #include <sdl/SDL.h>
 #include <string>

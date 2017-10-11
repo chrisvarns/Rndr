@@ -1,5 +1,5 @@
 // ImGui SDL + DirectX11 integration binding
-#include "imgui.h"
+#include "Imgui/imgui.h"
 #include "ImguiIntegration.h"
 #include "Utils.h"
 #include "UniquePtr.h"
