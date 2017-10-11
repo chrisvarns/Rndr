@@ -14,17 +14,14 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Shaders\PS.hlsl">
+    <FxCompile Include="Source\RHI\D3D11\Shaders\ImGuiPS.hlsl" />
+    <FxCompile Include="Source\RHI\D3D11\Shaders\ImGuiVS.hlsl" />
+    <FxCompile Include="Source\RHI\D3D11\Shaders\PS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="Shaders\VS.hlsl">
+    <FxCompile Include="Source\RHI\D3D11\Shaders\VS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="Shaders\ImGuiVS.hlsl" />
-    <FxCompile Include="Shaders\ImGuiPS.hlsl" />
-  </ItemGroup>
-  <ItemGroup>
-    <Natvis Include="NatvisFile.natvis" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Engine.cpp">
@@ -95,5 +92,8 @@
     <ClInclude Include="Source\ImguiMenus.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="Source\NatvisFile.natvis" />
   </ItemGroup>
 </Project>
