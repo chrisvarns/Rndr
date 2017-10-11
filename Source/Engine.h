@@ -37,7 +37,7 @@ private:
 	char**			m_CmdLineArgs;
 	int				m_WindowWidth;
 	int				m_WindowHeight;
-	std::string		m_MeshPath;
+	std::string		m_ScenePath;
 
 	// SDL
 	UniquePtr<SDL_Window> m_pSdlWindow = UniquePtr<SDL_Window>([](SDL_Window* window) { SDL_DestroyWindow(window); });

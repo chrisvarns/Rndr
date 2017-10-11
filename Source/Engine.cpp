@@ -69,9 +69,9 @@ bool Engine::ParseArgs()
 		{
 			m_WindowHeight = stoi(arg);
 		}
-		else if (cmd == "mesh")
+		else if (cmd == "scene")
 		{
-			m_MeshPath = arg;
+			m_ScenePath = arg;
 		}
 		else
 		{
@@ -390,7 +390,7 @@ bool Engine::LoadContent()
 {
 	// Load the asset with assimp
 	Assimp::Importer assimp;
-	const aiScene* pScene = assimp.ReadFile(m_MeshPath,
+	const aiScene* pScene = assimp.ReadFile(m_ScenePath,
 		(aiProcess_ConvertToLeftHanded	// Convert to CW for DirectX.
 		| aiProcessPreset_TargetRealtime_MaxQuality)
 	);
