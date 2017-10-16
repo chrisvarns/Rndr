@@ -137,7 +137,8 @@
   <ItemGroup>
     <ClCompile Include="Source\Engine.cpp" />
     <ClCompile Include="Source\Imgui\imgui.cpp" />
-    <ClCompile Include="Source\RHI\D3D11\ImguiIntegration.cpp" />
+    <ClCompile Include="Source\RHI\D3D11\D3D11RHI.cpp" />
+    <ClCompile Include="Source\RHI\D3D11\D3D11ImguiIntegration.cpp" />
     <ClCompile Include="Source\Imgui\ImguiMenus.cpp" />
     <ClCompile Include="Source\Imgui\imgui_demo.cpp" />
     <ClCompile Include="Source\Imgui\imgui_draw.cpp" />
@@ -149,16 +150,20 @@
     <ClInclude Include="Source\Engine.h" />
     <ClInclude Include="Source\Imgui\imconfig.h" />
     <ClInclude Include="Source\Imgui\imgui.h" />
-    <ClInclude Include="Source\RHI\D3D11\ImguiIntegration.h" />
+    <ClInclude Include="Source\Imgui\ImguiIntegration.h" />
+    <ClInclude Include="Source\RHI\D3D11\D3D11RHI.h" />
+    <ClInclude Include="Source\RHI\D3D11\D3D11ImguiIntegration.h" />
     <ClInclude Include="Source\Imgui\ImguiMenus.h" />
     <ClInclude Include="Source\Imgui\imgui_internal.h" />
     <ClInclude Include="Source\Mesh.h" />
+    <ClInclude Include="Source\RHI\RHI.h" />
     <ClInclude Include="Source\SharedPtr.h" />
     <ClInclude Include="Source\stb_rect_pack.h" />
     <ClInclude Include="Source\stb_textedit.h" />
     <ClInclude Include="Source\stb_truetype.h" />
     <ClInclude Include="Source\UniquePtr.h" />
     <ClInclude Include="Source\Utils.h" />
+    <ClInclude Include="Source\Window.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

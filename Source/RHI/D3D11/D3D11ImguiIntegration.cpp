@@ -1,21 +1,20 @@
 // ImGui SDL + DirectX11 integration binding
-#include "Imgui/imgui.h"
-#include "ImguiIntegration.h"
-#include "Utils.h"
-#include "UniquePtr.h"
+#include "D3D11ImguiIntegration.h"
 
-// SDL
-#include <sdl/SDL.h>
-#include <sdl/SDL_syswm.h>
-
-// DirectX
 #include <d3d11.h>
 #include <d3dcompiler.h>
 #define DIRECTINPUT_VERSION 0x0800
 #include <dinput.h>
+#include <sdl/SDL.h>
+#include <sdl/SDL_syswm.h>
 
-namespace ImGui::Integration
-{
+#include "Imgui/imgui.h"
+#include "RHI/D3D11/D3D11RHI.h"
+#include "Utils.h"
+#include "UniquePtr.h"
+
+namespace RHI {
+namespace D3D11 {
 
 // Data
 static INT64                    g_Time = 0;
@@ -233,7 +232,7 @@ void RenderDrawLists(ImDrawData* draw_data)
 	ctx->IASetInputLayout(old.InputLayout); if (old.InputLayout) old.InputLayout->Release();
 }
 
-bool ProcessEvent(SDL_Event* event)
+bool D3D11ImGuiIntegration::ProcessEvent(SDL_Event* event)
 {
 	ImGuiIO& io = ImGui::GetIO();
 	switch (event->type)
@@ -332,7 +331,7 @@ static void CreateFontsTexture()
 	}
 }
 
-bool    CreateDeviceObjects()
+bool D3D11ImGuiIntegration::CreateDeviceObjects()
 {
 	if (!g_pd3dDevice)
 		return false;
@@ -427,7 +426,7 @@ bool    CreateDeviceObjects()
 	return true;
 }
 
-void    InvalidateDeviceObjects()
+void D3D11ImGuiIntegration::InvalidateDeviceObjects()
 {
 	if (!g_pd3dDevice)
 		return;
@@ -456,10 +455,11 @@ static void SetClipboardText(void*, const char* text)
 	SDL_SetClipboardText(text);
 }
 
-bool    Init(SDL_Window* window, ID3D11Device* device, ID3D11DeviceContext* device_context)
+bool D3D11ImGuiIntegration::Init(SDL_Window* window, RHI* rhi)
 {
-	g_pd3dDevice = device;
-	g_pd3dDeviceContext = device_context;
+    auto d3d11rhi = dynamic_cast<D3D11RHI*>(rhi);
+	g_pd3dDevice = d3d11rhi->GetDevice();
+	g_pd3dDeviceContext = d3d11rhi->GetDeviceContext();
 
 	ImGuiIO& io = ImGui::GetIO();
 	io.KeyMap[ImGuiKey_Tab] = SDLK_TAB;                     // Keyboard mapping. ImGui will use those indices to peek into the io.KeyDown[] array.
@@ -499,7 +499,7 @@ bool    Init(SDL_Window* window, ID3D11Device* device, ID3D11DeviceContext* devi
 	return true;
 }
 
-void Shutdown()
+void D3D11ImGuiIntegration::Shutdown()
 {
 	InvalidateDeviceObjects();
 	ImGui::Shutdown();
@@ -507,7 +507,7 @@ void Shutdown()
 	g_pd3dDeviceContext = NULL;
 }
 
-void NewFrame(SDL_Window* window)
+void D3D11ImGuiIntegration::NewFrame(SDL_Window* window)
 {
 	if (!g_pFontSampler)
 		CreateDeviceObjects();
@@ -551,4 +551,5 @@ void NewFrame(SDL_Window* window)
 	ImGui::NewFrame();
 }
 
-} // namespace Imgui::Integration
+}
+}
