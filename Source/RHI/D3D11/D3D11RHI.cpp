@@ -287,9 +287,8 @@ RHIConstantBufferHandle D3D11RHI::CreateConstantBuffer()
 
 void D3D11RHI::LoadVertexShader()
 {
-    UniqueFreePtr<void> vsData;
-    size_t vsDataSize = ShaderUtils::LoadShaderBinary("VS.cso", vsData.GetRef());
-    assert(SUCCEEDED(m_pD3dDevice->CreateVertexShader(vsData.get(), vsDataSize, 0, m_pSolidColourVs.GetRef())));
+    auto vsData = Utils::LoadFile("VS.cso");
+    assert(SUCCEEDED(m_pD3dDevice->CreateVertexShader(vsData.data(), vsData.size(), 0, m_pSolidColourVs.GetRef())));
 
     ////////////////////
     // Vertex input layout
@@ -299,14 +298,13 @@ void D3D11RHI::LoadVertexShader()
         { "NORMAL",		0,	DXGI_FORMAT_R32G32B32_FLOAT,	1,	0,	D3D11_INPUT_PER_VERTEX_DATA,	0 },
         { "TEXCOORD",	0,	DXGI_FORMAT_R32G32B32_FLOAT,	2,	0,	D3D11_INPUT_PER_VERTEX_DATA,	0 }
     };
-    assert(SUCCEEDED(m_pD3dDevice->CreateInputLayout(vertexLayout, ARRAYSIZE(vertexLayout), vsData.get(), vsDataSize, m_pInputLayout.GetRef())));
+    assert(SUCCEEDED(m_pD3dDevice->CreateInputLayout(vertexLayout, ARRAYSIZE(vertexLayout), vsData.data(), vsData.size(), m_pInputLayout.GetRef())));
 }
 
 void D3D11RHI::LoadPixelShader()
 {
-    UniqueFreePtr<void> psData;
-    size_t psDataSize = ShaderUtils::LoadShaderBinary("PS.cso", psData.GetRef());
-    assert(SUCCEEDED(m_pD3dDevice->CreatePixelShader(psData.get(), psDataSize, 0, m_pSolidColourPs.GetRef())));
+    auto psData = Utils::LoadFile("PS.cso");
+    assert(SUCCEEDED(m_pD3dDevice->CreatePixelShader(psData.data(), psData.size(), 0, m_pSolidColourPs.GetRef())));
 }
 
 void D3D11RHI::ClearBackBuffer(const std::array<float, 4>& clearColor)

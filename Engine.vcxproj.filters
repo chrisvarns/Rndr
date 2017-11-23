@@ -62,15 +62,6 @@
     <ClInclude Include="Source\UniquePtr.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\stb_rect_pack.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\stb_textedit.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\stb_truetype.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Mesh.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -107,8 +98,17 @@
     <ClInclude Include="Source\RHI\D3D11\D3D11ImguiIntegration.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Imgui\stb_rect_pack.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Imgui\stb_textedit.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Imgui\stb_truetype.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Natvis Include="Source\NatvisFile.natvis" />
+    <Natvis Include="Source\UniquePtr.natvis" />
   </ItemGroup>
 </Project>

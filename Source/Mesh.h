@@ -14,12 +14,7 @@ class RHI;
 class Mesh
 {
 public:
-	Mesh()
-		: m_NumFaces(0)
-		, m_ModelMatrix(1.f)
-	{}
-
-	static SharedDeletePtr<Mesh>				LoadMesh(aiMesh* aiMesh, RHI::RHI* d3dDevice);
+	static SharedDeletePtr<Mesh>				LoadMesh(const aiMesh& aiMesh, const aiScene& aiscene, RHI::RHI& d3dDevice);
 
 	glm::mat4									m_ModelMatrix;
 

@@ -1,9 +1,9 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
-namespace ShaderUtils
+namespace Utils
 {
-// Returns the size of the shader data in bytes
-size_t LoadShaderBinary(std::string filename, void** data);
+std::vector<char> LoadFile(const std::string& filename);
 }

@@ -239,13 +239,8 @@ bool Engine::LoadContent()
 
 	for (uint32_t meshIdx = 0; meshIdx < pScene->mNumMeshes; ++meshIdx)
 	{
-		aiMesh* aimesh = pScene->mMeshes[meshIdx];
-		SharedDeletePtr<Mesh> mesh = Mesh::LoadMesh(aimesh, rhi.get());
-		if (!mesh)
-		{
-			SDL_Log("Failed to load mesh.");
-			return false;
-		}
+		const aiMesh& aimesh = *pScene->mMeshes[meshIdx];
+		SharedDeletePtr<Mesh> mesh = Mesh::LoadMesh(aimesh, *pScene, *rhi.get());
 		m_Meshes.push_back(mesh);
 	}
 

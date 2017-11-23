@@ -346,9 +346,8 @@ bool D3D11ImGuiIntegration::CreateDeviceObjects()
 
 	// Create the vertex shader
 	{
-		UniqueFreePtr<void> vsData;
-		size_t vsDataSize = ShaderUtils::LoadShaderBinary("ImGuiVs.cso", vsData.GetRef());
-		if (g_pd3dDevice->CreateVertexShader(vsData.get(), vsDataSize, NULL, &g_pVertexShader) != S_OK)
+		auto vsData = Utils::LoadFile("ImGuiVs.cso");
+		if (g_pd3dDevice->CreateVertexShader(vsData.data(), vsData.size(), NULL, &g_pVertexShader) != S_OK)
 			return false;
 
 		// Create the input layout
@@ -357,7 +356,7 @@ bool D3D11ImGuiIntegration::CreateDeviceObjects()
 			{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,   0, (size_t)(&((ImDrawVert*)0)->uv),  D3D11_INPUT_PER_VERTEX_DATA, 0 },
 			{ "COLOR",    0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, (size_t)(&((ImDrawVert*)0)->col), D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		};
-		if (g_pd3dDevice->CreateInputLayout(local_layout, 3, vsData.get(), vsDataSize, &g_pInputLayout) != S_OK)
+		if (g_pd3dDevice->CreateInputLayout(local_layout, 3, vsData.data(), vsData.size(), &g_pInputLayout) != S_OK)
 			return false;
 
 		// Create the constant buffer
@@ -374,9 +373,8 @@ bool D3D11ImGuiIntegration::CreateDeviceObjects()
 
 	// Create the pixel shader
 	{
-		UniqueFreePtr<void> psData;
-		size_t psDataSize = ShaderUtils::LoadShaderBinary("ImGuiPs.cso", psData.GetRef());
-		if (g_pd3dDevice->CreatePixelShader(psData.get(), psDataSize, NULL, &g_pPixelShader) != S_OK)
+		auto psData = Utils::LoadFile("ImGuiPs.cso");
+		if (g_pd3dDevice->CreatePixelShader(psData.data(), psData.size(), NULL, &g_pPixelShader) != S_OK)
 			return false;
 	}
 
