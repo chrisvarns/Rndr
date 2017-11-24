@@ -144,9 +144,10 @@
     <ClCompile Include="Source\Imgui\imgui_draw.cpp" />
     <ClCompile Include="Source\main.cpp" />
     <ClCompile Include="Source\Mesh.cpp" />
-    <ClCompile Include="Source\Utils.cpp" />
+    <ClCompile Include="Source\FileUtils.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\CPUTexture.h" />
     <ClInclude Include="Source\Engine.h" />
     <ClInclude Include="Source\Imgui\imconfig.h" />
     <ClInclude Include="Source\Imgui\imgui.h" />
@@ -162,7 +163,7 @@
     <ClInclude Include="Source\Imgui\stb_textedit.h" />
     <ClInclude Include="Source\Imgui\stb_truetype.h" />
     <ClInclude Include="Source\UniquePtr.h" />
-    <ClInclude Include="Source\Utils.h" />
+    <ClInclude Include="Source\FileUtils.h" />
     <ClInclude Include="Source\Window.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

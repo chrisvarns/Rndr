@@ -22,10 +22,12 @@
 #include "RHI/RHI.h"
 #include "RHI/D3D11/D3D11RHI.h"
 #include "RHI/D3D11/D3D11ImguiIntegration.h"
-#include "Utils.h"
+#include "FileUtils.h"
 #include "Mesh.h"
 
 using namespace std;
+
+Engine* Engine::g_Engine = nullptr;
 
 // Special behavior for ++Colors
 RenderMode& operator++(RenderMode& rm) {
@@ -54,6 +56,7 @@ Engine::Engine(int argc, char** argv)
     , rhi(make_unique<RHI::D3D11::D3D11RHI>())
     , imgui(make_unique<RHI::D3D11::D3D11ImGuiIntegration>())
 {
+    g_Engine = this;
 }
 
 Engine::~Engine()
@@ -63,6 +66,8 @@ Engine::~Engine()
 
 bool Engine::ParseArgs()
 {
+    workingDir = FileUtils::GetProcessWorkingDir();
+
 	for (int i = 1; i < m_NumCmdLineArgs; ++i)
 	{
 		string cmd = m_CmdLineArgs[i];
@@ -82,7 +87,8 @@ bool Engine::ParseArgs()
 		}
 		else if (cmd == "scene")
 		{
-			scenePath = arg;
+			scenePath = FileUtils::Combine(workingDir, arg);
+            sceneAssetsBasePath = FileUtils::GetParentDirectory(scenePath);
 		}
 		else
 		{
@@ -293,10 +299,12 @@ bool Engine::Update(float deltaTime)
 
 	UpdateCamera(deltaTime);
 
+    auto viewProjMatrix = m_ProjectionMatrix * m_ViewMatrix;
+
 	for (auto& meshItr : m_Meshes)
 	{
 		RHI::ConstantBufferData constBuffer;
-		constBuffer.mvpMatrix = m_ProjectionMatrix * m_ViewMatrix * meshItr->m_ModelMatrix;
+		constBuffer.mvpMatrix =  viewProjMatrix * meshItr->m_ModelMatrix;
 		constBuffer.renderMode = glm::ivec4(static_cast<int>(m_RenderMode));
 
 		// Update the constant buffer...

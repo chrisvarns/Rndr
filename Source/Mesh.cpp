@@ -8,7 +8,9 @@
 
 #include "Mesh.h"
 
+#include "Engine.h"
 #include "RHI/RHI.h"
+#include "FileUtils.h"
 
 SharedDeletePtr<Mesh> Mesh::LoadMesh(const aiMesh& aimesh, const aiScene& aiscene, RHI::RHI& rhi)
 {
@@ -51,15 +53,19 @@ SharedDeletePtr<Mesh> Mesh::LoadMesh(const aiMesh& aimesh, const aiScene& aiscen
     assert(mesh->m_pIndexBuffer);
     assert(mesh->m_pConstantBuffer);
 
-    /*assert(aiscene.HasMaterials());
+    assert(aiscene.HasMaterials());
     assert(aimesh.mMaterialIndex == std::clamp<unsigned int>(aimesh.mMaterialIndex, 0, aiscene.mNumMaterials - 1));
     const auto& material = *aiscene.mMaterials[aimesh.mMaterialIndex];
-    assert(material.GetTextureCount(aiTextureType_DIFFUSE) == 1);
+    auto numDiffuseTexture = material.GetTextureCount(aiTextureType_DIFFUSE);
+    if (numDiffuseTexture == 0)
+        return mesh;
+
+    assert(numDiffuseTexture == 1);
     aiString texPath;
     auto airet = material.GetTexture(aiTextureType_DIFFUSE, 0, &texPath, NULL, NULL, NULL, NULL, NULL);
-    assert(airet == aiReturn_SUCCESS);*/
-
-    
+    assert(airet == aiReturn_SUCCESS);
+    auto texture = FileUtils::LoadUncompressedTGA(FileUtils::Combine(Engine::g_Engine->sceneAssetsBasePath, texPath.C_Str()));
+    //mesh->m_DiffuseTexture = rhi.CreateTexture2D(texData);
 
 	return mesh;
 }

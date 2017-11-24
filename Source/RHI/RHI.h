@@ -32,6 +32,7 @@ public:
     virtual RHIVertexBufferHandle CreateVertexBuffer(const aiVector3D* data, uint32_t numVertices) = 0;
     virtual RHIIndexBufferHandle CreateIndexBuffer(const std::vector<IndexType>& indices) = 0;
     virtual RHIConstantBufferHandle CreateConstantBuffer() = 0;
+
     virtual void LoadVertexShader() = 0;
     virtual void LoadPixelShader() = 0;
 

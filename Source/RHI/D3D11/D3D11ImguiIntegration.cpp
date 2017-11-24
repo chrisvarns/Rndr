@@ -10,7 +10,7 @@
 
 #include "Imgui/imgui.h"
 #include "RHI/D3D11/D3D11RHI.h"
-#include "Utils.h"
+#include "FileUtils.h"
 #include "UniquePtr.h"
 
 namespace RHI {
@@ -346,7 +346,7 @@ bool D3D11ImGuiIntegration::CreateDeviceObjects()
 
 	// Create the vertex shader
 	{
-		auto vsData = Utils::LoadFile("ImGuiVs.cso");
+		auto vsData = FileUtils::LoadFile("ImGuiVs.cso");
 		if (g_pd3dDevice->CreateVertexShader(vsData.data(), vsData.size(), NULL, &g_pVertexShader) != S_OK)
 			return false;
 
@@ -373,7 +373,7 @@ bool D3D11ImGuiIntegration::CreateDeviceObjects()
 
 	// Create the pixel shader
 	{
-		auto psData = Utils::LoadFile("ImGuiPs.cso");
+		auto psData = FileUtils::LoadFile("ImGuiPs.cso");
 		if (g_pd3dDevice->CreatePixelShader(psData.data(), psData.size(), NULL, &g_pPixelShader) != S_OK)
 			return false;
 	}

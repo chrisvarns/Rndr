@@ -10,7 +10,7 @@
 #include "UniquePtr.h"
 #include "Engine.h"
 #include "Mesh.h"
-#include "Utils.h"
+#include "FileUtils.h"
 
 namespace RHI {
 namespace D3D11 {
@@ -287,7 +287,7 @@ RHIConstantBufferHandle D3D11RHI::CreateConstantBuffer()
 
 void D3D11RHI::LoadVertexShader()
 {
-    auto vsData = Utils::LoadFile("VS.cso");
+    auto vsData = FileUtils::LoadFile("VS.cso");
     assert(SUCCEEDED(m_pD3dDevice->CreateVertexShader(vsData.data(), vsData.size(), 0, m_pSolidColourVs.GetRef())));
 
     ////////////////////
@@ -303,7 +303,7 @@ void D3D11RHI::LoadVertexShader()
 
 void D3D11RHI::LoadPixelShader()
 {
-    auto psData = Utils::LoadFile("PS.cso");
+    auto psData = FileUtils::LoadFile("PS.cso");
     assert(SUCCEEDED(m_pD3dDevice->CreatePixelShader(psData.data(), psData.size(), 0, m_pSolidColourPs.GetRef())));
 }
 

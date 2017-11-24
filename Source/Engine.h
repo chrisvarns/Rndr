@@ -33,6 +33,7 @@ RenderMode operator++(RenderMode& rm, int);
 class Engine
 {
 public:
+    static Engine* g_Engine;
 	Engine(int argc, char** argv);
 	~Engine();
 	bool Init();
@@ -42,7 +43,10 @@ public:
 	static std::vector<std::string> ms_Commands;
 	int				m_NumCmdLineArgs;
 	char**			m_CmdLineArgs;
+
 	std::string		scenePath;
+    std::string     sceneAssetsBasePath;
+    std::string     workingDir;
 
     Window          window;
 
