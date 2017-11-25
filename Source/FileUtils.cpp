@@ -56,12 +56,35 @@ CPUTexture FileUtils::LoadUncompressedTGA(const std::string& absolutePath)
 
     texture.width = *(reinterpret_cast<uint16_t*>(fileData.data() + 12));
     texture.height = *(reinterpret_cast<uint16_t*>(fileData.data() + 14));
-    texture.colorChannels = *(fileData.data() + 16) / 8;
-    assert(texture.colorChannels == 3 || texture.colorChannels == 4);
+    auto colorChannels = *(fileData.data() + 16) / 8;
+    assert(colorChannels == 3 || colorChannels == 4);
 
-    auto imageDataLength = texture.width * texture.height * texture.colorChannels;
-    auto imageData = fileData.begin() + 18;
-    texture.data = std::vector<char>(imageData, imageData + imageDataLength);
+    auto srcImageDataLength = texture.width * texture.height * colorChannels;
+    auto srcImageDataBegin = fileData.data() + 18;
+    auto srcImageDataEnd = srcImageDataBegin + srcImageDataLength;
+
+    if (colorChannels == 4)
+    {
+        // Simple copy
+        texture.data = std::vector<char>(srcImageDataBegin, srcImageDataEnd);
+    }
+    else
+    {
+        // Must add the alpha channel manually
+        auto destImageDataLength = texture.width * texture.height * 4;
+        texture.data.resize(destImageDataLength);
+
+        auto destItr = texture.data.data();
+        auto srcItr = srcImageDataBegin;
+        do {
+            *(destItr+0) = *srcItr+0;
+            *(destItr+1) = *srcItr+1;
+            *(destItr+2) = *srcItr+2;
+            *(destItr+3) = 255;
+            destItr += 4;
+            srcItr += 3;
+        } while (destImageDataLength -= 4);
+    }
 
     return texture;
 }

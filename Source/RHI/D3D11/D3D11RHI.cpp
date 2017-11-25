@@ -293,9 +293,7 @@ RHITexture2DHandle D3D11RHI::CreateTexture2D(const CPUTexture& cpuTexture)
     textureDesc.Height = cpuTexture.height;
     textureDesc.MipLevels = 1;
     textureDesc.ArraySize = 1;
-    textureDesc.Format = cpuTexture.colorChannels == 3 ?
-        DXGI_FORMAT_B8G8R8X8_UNORM :
-        DXGI_FORMAT_B8G8R8A8_UNORM;
+    textureDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
     textureDesc.SampleDesc.Count = 1;
     textureDesc.SampleDesc.Quality = 0;
     textureDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -307,7 +305,7 @@ RHITexture2DHandle D3D11RHI::CreateTexture2D(const CPUTexture& cpuTexture)
     D3D11_SUBRESOURCE_DATA textureData;
     ZeroMemory(&textureData, sizeof(textureData));
     textureData.pSysMem = cpuTexture.data.data();
-    textureData.SysMemPitch = cpuTexture.colorChannels * cpuTexture.width;
+    textureData.SysMemPitch = cpuTexture.width * 4;
 
     GPUTexture gpuTexture;
     assert(SUCCEEDED(m_pD3dDevice->CreateTexture2D(&textureDesc, &textureData, &gpuTexture.texture)));
