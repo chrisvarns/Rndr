@@ -16,13 +16,14 @@ class Mesh
 public:
 	static SharedDeletePtr<Mesh>				LoadMesh(const aiMesh& aiMesh, const aiScene& aiscene, RHI::RHI& d3dDevice);
 
-	glm::mat4									m_ModelMatrix;
+	glm::mat4									modelMatrix;
 
-	RHI::RHIVertexBufferHandle       			m_pPositionBuffer;
-    RHI::RHIIndexBufferHandle  				    m_pIndexBuffer;
-	RHI::RHIVertexBufferHandle       			m_pNormalBuffer;
-    RHI::RHIVertexBufferHandle				    m_pUvBuffer;
-	RHI::RHIConstantBufferHandle				m_pConstantBuffer;
+	RHI::RHIVertexBufferHandle       			positionBuffer;
+    RHI::RHIIndexBufferHandle  				    indexBuffer;
+	RHI::RHIVertexBufferHandle       			normalBuffer;
+    RHI::RHIVertexBufferHandle				    uvBuffer;
+	RHI::RHIConstantBufferHandle				constantBuffer;
+    RHI::RHITexture2DHandle                     diffuseTexture;
 
-	uint32_t									m_NumFaces;
+	uint32_t									numFaces;
 };

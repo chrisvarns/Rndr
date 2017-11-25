@@ -15,8 +15,8 @@
 SharedDeletePtr<Mesh> Mesh::LoadMesh(const aiMesh& aimesh, const aiScene& aiscene, RHI::RHI& rhi)
 {
 	SharedDeletePtr<Mesh> mesh(new Mesh());
-	mesh->m_NumFaces = aimesh.mNumFaces;
-	mesh->m_ModelMatrix = glm::translate(glm::mat4(1.f), glm::vec3(0.f, 0.f, 1.f));
+	mesh->numFaces = aimesh.mNumFaces;
+	mesh->modelMatrix = glm::translate(glm::mat4(1.f), glm::vec3(0.f, 0.f, 1.f));
 
 	////////////////////
 	// Extract index buffer
@@ -42,16 +42,16 @@ SharedDeletePtr<Mesh> Mesh::LoadMesh(const aiMesh& aimesh, const aiScene& aiscen
 	assert(aimesh.GetNumUVChannels() == 1);
 	assert(aimesh.mTextureCoords[0]);
 
-    mesh->m_pPositionBuffer = rhi.CreateVertexBuffer(aimesh.mVertices, aimesh.mNumVertices);
-    mesh->m_pNormalBuffer = rhi.CreateVertexBuffer(aimesh.mNormals, aimesh.mNumVertices);
-    mesh->m_pUvBuffer = rhi.CreateVertexBuffer(aimesh.mTextureCoords[0], aimesh.mNumVertices);
-    mesh->m_pIndexBuffer = rhi.CreateIndexBuffer(indices);
-    mesh->m_pConstantBuffer = rhi.CreateConstantBuffer();
-    assert(mesh->m_pPositionBuffer);
-    assert(mesh->m_pNormalBuffer);
-    assert(mesh->m_pUvBuffer);
-    assert(mesh->m_pIndexBuffer);
-    assert(mesh->m_pConstantBuffer);
+    mesh->positionBuffer = rhi.CreateVertexBuffer(aimesh.mVertices, aimesh.mNumVertices);
+    mesh->normalBuffer = rhi.CreateVertexBuffer(aimesh.mNormals, aimesh.mNumVertices);
+    mesh->uvBuffer = rhi.CreateVertexBuffer(aimesh.mTextureCoords[0], aimesh.mNumVertices);
+    mesh->indexBuffer = rhi.CreateIndexBuffer(indices);
+    mesh->constantBuffer = rhi.CreateConstantBuffer();
+    assert(mesh->positionBuffer);
+    assert(mesh->normalBuffer);
+    assert(mesh->uvBuffer);
+    assert(mesh->indexBuffer);
+    assert(mesh->constantBuffer);
 
     assert(aiscene.HasMaterials());
     assert(aimesh.mMaterialIndex == std::clamp<unsigned int>(aimesh.mMaterialIndex, 0, aiscene.mNumMaterials - 1));
@@ -65,7 +65,7 @@ SharedDeletePtr<Mesh> Mesh::LoadMesh(const aiMesh& aimesh, const aiScene& aiscen
     auto airet = material.GetTexture(aiTextureType_DIFFUSE, 0, &texPath, NULL, NULL, NULL, NULL, NULL);
     assert(airet == aiReturn_SUCCESS);
     auto texture = FileUtils::LoadUncompressedTGA(FileUtils::Combine(Engine::g_Engine->sceneAssetsBasePath, texPath.C_Str()));
-    //mesh->m_DiffuseTexture = rhi.CreateTexture2D(texData);
+    mesh->diffuseTexture = rhi.CreateTexture2D(texture);
 
 	return mesh;
 }

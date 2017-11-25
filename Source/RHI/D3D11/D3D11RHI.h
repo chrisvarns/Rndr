@@ -1,6 +1,7 @@
 #pragma once
 #include <d3d11.h>
 #include <vector>
+#include <map>
 
 #include "RHI\RHI.h"
 #include "UniquePtr.h"
@@ -8,8 +9,14 @@
 class Window;
 
 namespace RHI {
-namespace D3D11
+namespace D3D11 {
+
+class GPUTexture
 {
+public:
+    ID3D11Texture2D* texture;
+    ID3D11ShaderResourceView* srv;
+};
 
 class D3D11RHI : public RHI
 {
@@ -22,6 +29,8 @@ public:
     virtual RHIVertexBufferHandle CreateVertexBuffer(const aiVector3D* data, uint32_t numVertices) override;
     virtual RHIIndexBufferHandle CreateIndexBuffer(const std::vector<IndexType>& indices) override;
     virtual RHIConstantBufferHandle CreateConstantBuffer() override;
+    virtual RHITexture2DHandle CreateTexture2D(const CPUTexture& cpuTexture) override;
+
     virtual void LoadVertexShader() override;
     virtual void LoadPixelShader() override;
 
@@ -59,7 +68,9 @@ private:
     UniqueReleasePtr<ID3D11PixelShader>			m_pSolidColourPs;
 
     /* The RHI ensures these objects get cleaned up upon destruction, or upon a call to Release() */
-    std::vector<UniqueReleasePtr<ID3D11Buffer>> m_ReleasableObjects;
+    std::vector<UniqueReleasePtr<ID3D11Resource>> m_ReleasableObjects;
+
+    std::map<RHITexture2DHandle, GPUTexture> m_GpuTextureMap;
 };
 
 }

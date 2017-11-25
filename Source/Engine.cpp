@@ -304,11 +304,11 @@ bool Engine::Update(float deltaTime)
 	for (auto& meshItr : m_Meshes)
 	{
 		RHI::ConstantBufferData constBuffer;
-		constBuffer.mvpMatrix =  viewProjMatrix * meshItr->m_ModelMatrix;
+		constBuffer.mvpMatrix =  viewProjMatrix * meshItr->modelMatrix;
 		constBuffer.renderMode = glm::ivec4(static_cast<int>(m_RenderMode));
 
 		// Update the constant buffer...
-        rhi->UpdateConstantBuffer(meshItr->m_pConstantBuffer, constBuffer);
+        rhi->UpdateConstantBuffer(meshItr->constantBuffer, constBuffer);
 	}
 
 	return true;

@@ -285,6 +285,42 @@ RHIConstantBufferHandle D3D11RHI::CreateConstantBuffer()
     return constantBufferHandle;
 }
 
+RHITexture2DHandle D3D11RHI::CreateTexture2D(const CPUTexture& cpuTexture)
+{
+    D3D11_TEXTURE2D_DESC textureDesc;
+    ZeroMemory(&textureDesc, sizeof(textureDesc));
+    textureDesc.Width = cpuTexture.width;
+    textureDesc.Height = cpuTexture.height;
+    textureDesc.MipLevels = 1;
+    textureDesc.ArraySize = 1;
+    textureDesc.Format = cpuTexture.colorChannels == 3 ?
+        DXGI_FORMAT_B8G8R8X8_UNORM :
+        DXGI_FORMAT_B8G8R8A8_UNORM;
+    textureDesc.SampleDesc.Count = 1;
+    textureDesc.SampleDesc.Quality = 0;
+    textureDesc.Usage = D3D11_USAGE_DEFAULT;
+    textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE |
+        D3D11_BIND_RENDER_TARGET;
+    textureDesc.CPUAccessFlags = 0;
+    textureDesc.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
+
+    D3D11_SUBRESOURCE_DATA textureData;
+    ZeroMemory(&textureData, sizeof(textureData));
+    textureData.pSysMem = cpuTexture.data.data();
+    textureData.SysMemPitch = cpuTexture.colorChannels * cpuTexture.width;
+
+    GPUTexture gpuTexture;
+    assert(SUCCEEDED(m_pD3dDevice->CreateTexture2D(&textureDesc, &textureData, &gpuTexture.texture)));
+    assert(SUCCEEDED(m_pD3dDevice->CreateShaderResourceView(gpuTexture.texture, NULL, &gpuTexture.srv)));
+    m_ReleasableObjects.push_back(gpuTexture.texture);
+    
+    m_pD3dContext->GenerateMips(gpuTexture.srv);
+
+    // store the gpuTexture in the map, and return the texture pointer as the handle;
+    m_GpuTextureMap.insert({ gpuTexture.texture, gpuTexture });
+    return gpuTexture.texture;
+}
+
 void D3D11RHI::LoadVertexShader()
 {
     auto vsData = FileUtils::LoadFile("VS.cso");
@@ -330,11 +366,11 @@ void D3D11RHI::DrawMesh(const Mesh& mesh)
     unsigned int stride = sizeof(aiVector3D);
     unsigned int offset = 0;
 
-    auto positionBuffer = static_cast<ID3D11Buffer*>(mesh.m_pPositionBuffer);
-    auto normalBuffer = static_cast<ID3D11Buffer*>(mesh.m_pNormalBuffer);
-    auto uvBuffer = static_cast<ID3D11Buffer*>(mesh.m_pUvBuffer);
-    auto indexBuffer = static_cast<ID3D11Buffer*>(mesh.m_pIndexBuffer);
-    auto constantBuffer = static_cast<ID3D11Buffer*>(mesh.m_pConstantBuffer);
+    auto positionBuffer = static_cast<ID3D11Buffer*>(mesh.positionBuffer);
+    auto normalBuffer = static_cast<ID3D11Buffer*>(mesh.normalBuffer);
+    auto uvBuffer = static_cast<ID3D11Buffer*>(mesh.uvBuffer);
+    auto indexBuffer = static_cast<ID3D11Buffer*>(mesh.indexBuffer);
+    auto constantBuffer = static_cast<ID3D11Buffer*>(mesh.constantBuffer);
 
     m_pD3dContext->IASetVertexBuffers(0, 1, &positionBuffer, &stride, &offset);
     m_pD3dContext->IASetVertexBuffers(1, 1, &normalBuffer, &stride, &offset);
@@ -342,7 +378,7 @@ void D3D11RHI::DrawMesh(const Mesh& mesh)
     m_pD3dContext->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R16_UINT, 0);
     m_pD3dContext->VSSetConstantBuffers(0, 1, &constantBuffer);
     m_pD3dContext->PSSetConstantBuffers(0, 1, &constantBuffer);
-    m_pD3dContext->DrawIndexed(mesh.m_NumFaces * 3, 0, 0);
+    m_pD3dContext->DrawIndexed(mesh.numFaces * 3, 0, 0);
 }
 
 void D3D11RHI::Present()

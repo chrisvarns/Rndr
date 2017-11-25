@@ -6,6 +6,7 @@
 
 class Window;
 class Mesh;
+class CPUTexture;
 
 namespace RHI {
 
@@ -20,6 +21,7 @@ typedef uint16_t IndexType;
 typedef void* RHIConstantBufferHandle;
 typedef void* RHIVertexBufferHandle;
 typedef void* RHIIndexBufferHandle;
+typedef void* RHITexture2DHandle;
 
 class RHI
 {
@@ -32,6 +34,7 @@ public:
     virtual RHIVertexBufferHandle CreateVertexBuffer(const aiVector3D* data, uint32_t numVertices) = 0;
     virtual RHIIndexBufferHandle CreateIndexBuffer(const std::vector<IndexType>& indices) = 0;
     virtual RHIConstantBufferHandle CreateConstantBuffer() = 0;
+    virtual RHITexture2DHandle CreateTexture2D(const CPUTexture& cpuTexture) = 0;
 
     virtual void LoadVertexShader() = 0;
     virtual void LoadPixelShader() = 0;
