@@ -2,6 +2,7 @@
 
 #include <array>
 #include <cassert>
+#include <filesystem>
 #include <memory>
 #include <sstream>
 #include <string>
@@ -64,48 +65,64 @@ Engine::~Engine()
 	imgui->Shutdown();
 }
 
-bool Engine::ParseArgs()
+void Engine::ParseArg(const string& key, const string& value)
 {
-    workingDir = FileUtils::GetProcessWorkingDir();
+    if (key == "xres")
+    {
+        window.width = stoi(value);
+    }
+    else if (key == "yres")
+    {
+        window.height = stoi(value);
+    }
+    else if (key == "scene")
+    {
+        scenePath = value;
+        sceneAssetsBasePath = FileUtils::GetParentDirectory(scenePath);
+    }
+    else
+    {
+        SDL_Log("Unknown argument \"%s\".", key.c_str());
+        assert(false);
+    }
+}
 
+void Engine::ParseArgs()
+{
+    // First read the config file
+    string configFilename = string(SDL_GetBasePath()) + "config.txt";
+    if (std::experimental::filesystem::exists(configFilename))
+    {
+        auto fileData = FileUtils::LoadFileAbsolute(configFilename);
+        string config = string(fileData.begin(), fileData.end());
+        stringstream ss(config);
+        string key;
+        while (getline(ss, key, '='))
+        {
+            string value;
+            assert(getline(ss, value));
+            ParseArg(key, value);
+        }
+    }
+
+    // Then parse cmd line args
 	for (int i = 1; i < m_NumCmdLineArgs; ++i)
 	{
-		string cmd = m_CmdLineArgs[i];
-
+		string cmdLineArg = m_CmdLineArgs[i];
+        stringstream ss(cmdLineArg);
 		//split the string
-		size_t mid = cmd.find("=");
-		string arg = cmd.c_str() + mid + 1;
-		cmd.resize(mid);
+        string key;
+        string value;
+        getline(ss, key, '=');
+        getline(ss, value);
 
-		if (cmd == "xres")
-		{
-			window.width = stoi(arg);
-		}
-		else if (cmd == "yres")
-		{
-            window.height = stoi(arg);
-		}
-		else if (cmd == "scene")
-		{
-			scenePath = FileUtils::Combine(workingDir, arg);
-            sceneAssetsBasePath = FileUtils::GetParentDirectory(scenePath);
-		}
-		else
-		{
-			SDL_Log("Unknown argument \"%s\".", cmd.c_str());
-			return false;
-		}
+        ParseArg(key, value);
 	}
-	return true;
 }
 
 bool Engine::Init()
 {
-	if (!ParseArgs())
-	{
-		SDL_Log("Failed to parse args");
-		return false;
-	}
+    ParseArgs();
 
 	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
 		SDL_Log("Unable to init Video: %s", SDL_GetError());

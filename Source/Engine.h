@@ -46,7 +46,6 @@ public:
 
 	std::string		scenePath;
     std::string     sceneAssetsBasePath;
-    std::string     workingDir;
 
     Window          window;
 
@@ -65,7 +64,7 @@ public:
 	// Render Stuff
 	RenderMode									m_RenderMode;
 
-	bool ParseArgs();
+	void ParseArgs();
 	
 	bool HandleEvents();
 	bool Update(float deltaTime);
@@ -75,5 +74,8 @@ public:
 	void ResizeWindow(int width, int height);
 	void HandleWindowEvent(const SDL_Event& event);
 	void UpdateProjectionMatrix();
+
+private:
+    void ParseArg(const std::string& key, const std::string& value);
 };
 
