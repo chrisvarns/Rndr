@@ -313,7 +313,8 @@ RHITexture2DHandle D3D11RHI::CreateTexture2D(const CPUTexture& cpuTexture)
     assert(SUCCEEDED(m_pD3dDevice->CreateTexture2D(&textureDesc, &textureData, &gpuTexture.texture)));
     assert(SUCCEEDED(m_pD3dDevice->CreateShaderResourceView(gpuTexture.texture, NULL, &gpuTexture.srv)));
     m_ReleasableObjects.push_back(gpuTexture.texture);
-    
+    m_ReleasableObjects.push_back(gpuTexture.srv);
+
     m_pD3dContext->GenerateMips(gpuTexture.srv);
 
     // store the gpuTexture in the map, and return the texture pointer as the handle;

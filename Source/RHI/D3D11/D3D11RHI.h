@@ -68,7 +68,7 @@ private:
     UniqueReleasePtr<ID3D11PixelShader>			m_pSolidColourPs;
 
     /* The RHI ensures these objects get cleaned up upon destruction, or upon a call to Release() */
-    std::vector<UniqueReleasePtr<ID3D11Resource>> m_ReleasableObjects;
+    std::vector<UniqueReleasePtr<ID3D11DeviceChild>> m_ReleasableObjects;
 
     std::map<RHITexture2DHandle, GPUTexture> m_GpuTextureMap;
 };
