@@ -77,9 +77,9 @@ CPUTexture FileUtils::LoadUncompressedTGA(const std::string& absolutePath)
         auto destItr = texture.data.data();
         auto srcItr = srcImageDataBegin;
         do {
-            *(destItr+0) = *srcItr+0;
-            *(destItr+1) = *srcItr+1;
-            *(destItr+2) = *srcItr+2;
+            *(destItr+0) = *(srcItr+0);
+            *(destItr+1) = *(srcItr+1);
+            *(destItr+2) = *(srcItr+2);
             *(destItr+3) = 255;
             destItr += 4;
             srcItr += 3;
