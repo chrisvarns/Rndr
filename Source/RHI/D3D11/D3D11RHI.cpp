@@ -397,6 +397,11 @@ void D3D11RHI::DrawMesh(const Mesh& mesh)
         m_pD3dContext->PSSetSamplers(0, 1, &diffuseTexture->second.sampler);
         m_pD3dContext->PSSetShaderResources(0, 1, &diffuseTexture->second.srv);
     }
+    else
+    {
+        ID3D11ShaderResourceView* empty = nullptr;
+        m_pD3dContext->PSSetShaderResources(0, 1, &empty);
+    }
 
     m_pD3dContext->DrawIndexed(mesh.numFaces * 3, 0, 0);
 }
