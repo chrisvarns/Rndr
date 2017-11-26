@@ -22,37 +22,32 @@ public:
 class D3D11RHI : public RHI
 {
 public:
+    // Interface stuff
     ~D3D11RHI();
-
     virtual bool InitRHI(const Window& window) override;
     virtual void HandleWindowResize(uint32_t windowWidth, uint32_t windowHeight) override;
-
     virtual RHIVertexBufferHandle CreateVertexBuffer(const aiVector3D* data, uint32_t numVertices) override;
     virtual RHIIndexBufferHandle CreateIndexBuffer(const std::vector<IndexType>& indices) override;
     virtual RHIConstantBufferHandle CreateConstantBuffer() override;
     virtual RHITexture2DHandle CreateTexture2D(const CPUTexture& cpuTexture) override;
-
+    virtual RHITexture2DHandle GetDebugTexture2D() override;
     virtual void LoadVertexShader() override;
     virtual void LoadPixelShader() override;
-
     virtual bool UpdateConstantBuffer(RHIConstantBufferHandle cbHandle, const ConstantBufferData& cb) override;
-    
     virtual void ClearBackBuffer(const std::array<float, 4>& clearColor) override;
-
     virtual void SetVertexShader() override;
     virtual void SetPixelShader() override;
-
     virtual void DrawMesh(const Mesh& mesh) override;
-
     virtual void Present() override;
-
     virtual void Release() override;
 
+    // Implementation
     ID3D11Device* GetDevice() const { return m_pD3dDevice.get(); }
     ID3D11DeviceContext* GetDeviceContext() const { return m_pD3dContext.get(); }
 
 private:
     void RecreateBackBufferRTAndView(uint32_t windowWidth, uint32_t windowHeight);
+    void CreateDebugTexture2D();
 
     UniqueReleasePtr<IDXGIAdapter1>				m_pAdapter;
     UniqueReleasePtr<IDXGISwapChain>			m_pSwapChain;
@@ -67,6 +62,7 @@ private:
     UniqueReleasePtr<ID3D11InputLayout>			m_pInputLayout;
     UniqueReleasePtr<ID3D11VertexShader>		m_pSolidColourVs;
     UniqueReleasePtr<ID3D11PixelShader>			m_pSolidColourPs;
+    RHITexture2DHandle                          m_DebugTexture2D;
 
     /* The RHI ensures these objects get cleaned up upon destruction, or upon a call to Release() */
     std::vector<UniqueReleasePtr<ID3D11DeviceChild>> m_ReleasableObjects;

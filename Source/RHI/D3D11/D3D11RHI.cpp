@@ -188,6 +188,24 @@ void D3D11RHI::RecreateBackBufferRTAndView(uint32_t windowWidth,uint32_t windowH
     viewport.TopLeftX = 0.f;
     viewport.TopLeftY = 0.f;
     m_pD3dContext->RSSetViewports(1, &viewport);
+
+    CreateDebugTexture2D();
+}
+
+void D3D11RHI::CreateDebugTexture2D()
+{
+    CPUTexture debugTex;
+    debugTex.height = 2;
+    debugTex.width = 2;
+    for (int i = 0; i < debugTex.height * debugTex.width; i++)
+    {
+        debugTex.data.push_back('255');
+        debugTex.data.push_back('0');
+        debugTex.data.push_back('255');
+        debugTex.data.push_back('255');
+    }
+
+    m_DebugTexture2D = CreateTexture2D(debugTex);
 }
 
 void D3D11RHI::HandleWindowResize(uint32_t windowWidth, uint32_t windowHeight)
@@ -372,6 +390,11 @@ void D3D11RHI::SetPixelShader()
     m_pD3dContext->PSSetShader(m_pSolidColourPs.get(), 0, 0);
 }
 
+RHITexture2DHandle D3D11RHI::GetDebugTexture2D()
+{
+    return m_DebugTexture2D;
+}
+
 void D3D11RHI::DrawMesh(const Mesh& mesh)
 {
     unsigned int stride = sizeof(aiVector3D);
@@ -391,17 +414,9 @@ void D3D11RHI::DrawMesh(const Mesh& mesh)
     m_pD3dContext->PSSetConstantBuffers(0, 1, &constantBuffer);
 
     //Diffuse 
-    auto diffuseTexture = m_GpuTextureMap.find(mesh.diffuseTexture);
-    if (diffuseTexture != m_GpuTextureMap.end())
-    {
-        m_pD3dContext->PSSetSamplers(0, 1, &diffuseTexture->second.sampler);
-        m_pD3dContext->PSSetShaderResources(0, 1, &diffuseTexture->second.srv);
-    }
-    else
-    {
-        ID3D11ShaderResourceView* empty = nullptr;
-        m_pD3dContext->PSSetShaderResources(0, 1, &empty);
-    }
+    auto diffuseTexture = m_GpuTextureMap.at(mesh.diffuseTexture);
+    m_pD3dContext->PSSetSamplers(0, 1, &diffuseTexture.sampler);
+    m_pD3dContext->PSSetShaderResources(0, 1, &diffuseTexture.srv);
 
     m_pD3dContext->DrawIndexed(mesh.numFaces * 3, 0, 0);
 }

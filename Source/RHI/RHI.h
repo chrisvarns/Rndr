@@ -36,6 +36,8 @@ public:
     virtual RHIConstantBufferHandle CreateConstantBuffer() = 0;
     virtual RHITexture2DHandle CreateTexture2D(const CPUTexture& cpuTexture) = 0;
 
+    virtual RHITexture2DHandle GetDebugTexture2D() = 0;
+
     virtual void LoadVertexShader() = 0;
     virtual void LoadPixelShader() = 0;
 

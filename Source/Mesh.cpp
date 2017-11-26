@@ -57,15 +57,19 @@ SharedDeletePtr<Mesh> Mesh::LoadMesh(const aiMesh& aimesh, const aiScene& aiscen
     assert(aimesh.mMaterialIndex == std::clamp<unsigned int>(aimesh.mMaterialIndex, 0, aiscene.mNumMaterials - 1));
     const auto& material = *aiscene.mMaterials[aimesh.mMaterialIndex];
     auto numDiffuseTexture = material.GetTextureCount(aiTextureType_DIFFUSE);
-    if (numDiffuseTexture == 0)
-        return mesh;
-
-    assert(numDiffuseTexture == 1);
-    aiString texPath;
-    auto airet = material.GetTexture(aiTextureType_DIFFUSE, 0, &texPath, NULL, NULL, NULL, NULL, NULL);
-    assert(airet == aiReturn_SUCCESS);
-    auto absoluteTexturePath = FileUtils::Combine(Engine::g_Engine->sceneAssetsBasePath, texPath.C_Str());
-    mesh->diffuseTexture = Engine::g_Engine->textureMap.GetTexture2DFromPath(absoluteTexturePath);
+    if (numDiffuseTexture)
+    {
+        assert(numDiffuseTexture == 1);
+        aiString texPath;
+        auto airet = material.GetTexture(aiTextureType_DIFFUSE, 0, &texPath, NULL, NULL, NULL, NULL, NULL);
+        assert(airet == aiReturn_SUCCESS);
+        auto absoluteTexturePath = FileUtils::Combine(Engine::g_Engine->sceneAssetsBasePath, texPath.C_Str());
+        mesh->diffuseTexture = Engine::g_Engine->textureMap.GetTexture2DFromPath(absoluteTexturePath);
+    }
+    else
+    {
+        mesh->diffuseTexture = rhi.GetDebugTexture2D();
+    }
 
 	return mesh;
 }
