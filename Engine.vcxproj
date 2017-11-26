@@ -145,6 +145,7 @@
     <ClCompile Include="Source\main.cpp" />
     <ClCompile Include="Source\Mesh.cpp" />
     <ClCompile Include="Source\FileUtils.cpp" />
+    <ClCompile Include="Source\TextureMap.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\CPUTexture.h" />
@@ -162,6 +163,7 @@
     <ClInclude Include="Source\Imgui\stb_rect_pack.h" />
     <ClInclude Include="Source\Imgui\stb_textedit.h" />
     <ClInclude Include="Source\Imgui\stb_truetype.h" />
+    <ClInclude Include="Source\TextureMap.h" />
     <ClInclude Include="Source\UniquePtr.h" />
     <ClInclude Include="Source\FileUtils.h" />
     <ClInclude Include="Source\Window.h" />
