@@ -16,14 +16,17 @@ cbuffer VSConstantBuffer : register(b0)
 	int4 RenderMode;
 };
 
+Texture2D diffuseTex;
+SamplerState diffuseSampler;
+
 PSOut main(PSIn input)
 {
 	PSOut output;
 
-	//Solid Colour
+	//Diffuse
 	if (RenderMode.x == 0)
 	{
-		output.Colour = float4(0.62852854784553653, 0.95568463956856, 0.495393874586, 1);
+        output.Colour = diffuseTex.Sample(diffuseSampler, input.UV.xy);
 	}
 	//Normals
 	else if (RenderMode.x == 1)

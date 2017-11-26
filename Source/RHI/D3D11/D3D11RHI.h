@@ -16,6 +16,7 @@ class GPUTexture
 public:
     ID3D11Texture2D* texture;
     ID3D11ShaderResourceView* srv;
+    ID3D11SamplerState* sampler;
 };
 
 class D3D11RHI : public RHI

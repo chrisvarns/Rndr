@@ -315,6 +315,18 @@ RHITexture2DHandle D3D11RHI::CreateTexture2D(const CPUTexture& cpuTexture)
 
     m_pD3dContext->GenerateMips(gpuTexture.srv);
 
+    D3D11_SAMPLER_DESC samplerDesc;
+    ZeroMemory(&samplerDesc, sizeof(samplerDesc));
+    samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+    samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+    samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+    samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+    samplerDesc.MipLODBias = 0;
+    samplerDesc.MinLOD = 0;
+    samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+    assert(SUCCEEDED(m_pD3dDevice->CreateSamplerState(&samplerDesc, &gpuTexture.sampler)));
+    m_ReleasableObjects.push_back(gpuTexture.sampler);
     // store the gpuTexture in the map, and return the texture pointer as the handle;
     m_GpuTextureMap.insert({ gpuTexture.texture, gpuTexture });
     return gpuTexture.texture;
@@ -377,6 +389,15 @@ void D3D11RHI::DrawMesh(const Mesh& mesh)
     m_pD3dContext->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R16_UINT, 0);
     m_pD3dContext->VSSetConstantBuffers(0, 1, &constantBuffer);
     m_pD3dContext->PSSetConstantBuffers(0, 1, &constantBuffer);
+
+    //Diffuse 
+    auto diffuseTexture = m_GpuTextureMap.find(mesh.diffuseTexture);
+    if (diffuseTexture != m_GpuTextureMap.end())
+    {
+        m_pD3dContext->PSSetSamplers(0, 1, &diffuseTexture->second.sampler);
+        m_pD3dContext->PSSetShaderResources(0, 1, &diffuseTexture->second.srv);
+    }
+
     m_pD3dContext->DrawIndexed(mesh.numFaces * 3, 0, 0);
 }
 

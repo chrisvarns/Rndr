@@ -24,5 +24,6 @@ VSOut main(VSIn input)
 	output.Position = mul(MvpMatrix, input.Position);
 	output.Normal = input.Normal;
 	output.UV = input.UV;
+    output.UV.g = 1 - output.UV.g;
 	return output;
 }
