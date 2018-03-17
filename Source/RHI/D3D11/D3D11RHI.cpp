@@ -199,10 +199,10 @@ void D3D11RHI::CreateDebugTexture2D()
     debugTex.width = 2;
     for (int i = 0; i < debugTex.height * debugTex.width; i++)
     {
-        debugTex.data.push_back('255');
-        debugTex.data.push_back('0');
-        debugTex.data.push_back('255');
-        debugTex.data.push_back('255');
+        debugTex.data.push_back(255);
+        debugTex.data.push_back(0);
+        debugTex.data.push_back(255);
+        debugTex.data.push_back(255);
     }
 
     m_DebugTexture2D = CreateTexture2D(debugTex);
@@ -305,30 +305,34 @@ RHIConstantBufferHandle D3D11RHI::CreateConstantBuffer()
 
 RHITexture2DHandle D3D11RHI::CreateTexture2D(const CPUTexture& cpuTexture)
 {
+	auto max = glm::max(cpuTexture.width, cpuTexture.height);
+	int mipLevels = 1 + glm::log2(float(max));
+
     D3D11_TEXTURE2D_DESC textureDesc;
     ZeroMemory(&textureDesc, sizeof(textureDesc));
     textureDesc.Width = cpuTexture.width;
     textureDesc.Height = cpuTexture.height;
-    textureDesc.MipLevels = 1;
+    textureDesc.MipLevels = mipLevels;
     textureDesc.ArraySize = 1;
     textureDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
     textureDesc.SampleDesc.Count = 1;
     textureDesc.SampleDesc.Quality = 0;
     textureDesc.Usage = D3D11_USAGE_DEFAULT;
-    textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE |
-        D3D11_BIND_RENDER_TARGET;
+	textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE |
+		D3D11_BIND_RENDER_TARGET;
     textureDesc.CPUAccessFlags = 0;
     textureDesc.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
 
-    D3D11_SUBRESOURCE_DATA textureData;
-    ZeroMemory(&textureData, sizeof(textureData));
-    textureData.pSysMem = cpuTexture.data.data();
-    textureData.SysMemPitch = cpuTexture.width * 4;
-
     GPUTexture gpuTexture;
-    assert(SUCCEEDED(m_pD3dDevice->CreateTexture2D(&textureDesc, &textureData, &gpuTexture.texture)));
+    assert(SUCCEEDED(m_pD3dDevice->CreateTexture2D(&textureDesc, NULL, &gpuTexture.texture)));
+	m_ReleasableObjects.push_back(gpuTexture.texture);
+
+	UINT destSubresource = D3D11CalcSubresource(0, 0, textureDesc.MipLevels);
+	int rowPitch = cpuTexture.width * 4;
+	int depthPitch = cpuTexture.height * rowPitch;
+	m_pD3dContext->UpdateSubresource(gpuTexture.texture, destSubresource, NULL, cpuTexture.data.data(), rowPitch, depthPitch);
+
     assert(SUCCEEDED(m_pD3dDevice->CreateShaderResourceView(gpuTexture.texture, NULL, &gpuTexture.srv)));
-    m_ReleasableObjects.push_back(gpuTexture.texture);
     m_ReleasableObjects.push_back(gpuTexture.srv);
 
     m_pD3dContext->GenerateMips(gpuTexture.srv);
