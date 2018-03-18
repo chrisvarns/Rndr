@@ -151,9 +151,23 @@ bool Engine::Init()
 
 	imgui->Init(window.sdlWindow.get(), rhi.get());
 
+	// TODO Feels a bit out of place here.
     UpdateProjectionMatrix();
 
+	SetupRenderTargets();
+
 	return true;
+}
+
+void Engine::SetupRenderTargets()
+{
+	RHI::RHIRenderTargetCreateInfo rtCreateInfo;
+	rtCreateInfo.width = window.width;
+	rtCreateInfo.height = window.height;
+	// Color
+	m_Gbuffers.push_back(rhi->CreateRenderTarget(rtCreateInfo));
+	// Normal
+	m_Gbuffers.push_back(rhi->CreateRenderTarget(rtCreateInfo));
 }
 
 bool Engine::Execute()

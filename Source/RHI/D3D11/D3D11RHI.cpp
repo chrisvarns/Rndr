@@ -148,6 +148,8 @@ bool D3D11RHI::InitRHI(const Window& window)
     m_pD3dContext->RSSetState(m_pRasterState.get());
 #pragma endregion
 
+	CreateDebugTexture2D();
+
     return true;
 }
 
@@ -188,8 +190,6 @@ void D3D11RHI::RecreateBackBufferRTAndView(uint32_t windowWidth,uint32_t windowH
     viewport.TopLeftX = 0.f;
     viewport.TopLeftY = 0.f;
     m_pD3dContext->RSSetViewports(1, &viewport);
-
-    CreateDebugTexture2D();
 }
 
 void D3D11RHI::CreateDebugTexture2D()
@@ -352,6 +352,47 @@ RHITexture2DHandle D3D11RHI::CreateTexture2D(const CPUTexture& cpuTexture)
     // store the gpuTexture in the map, and return the texture pointer as the handle;
     m_GpuTextureMap.insert({ gpuTexture.texture, gpuTexture });
     return gpuTexture.texture;
+}
+
+RHIRenderTargetHandle D3D11RHI::CreateRenderTarget(const RHIRenderTargetCreateInfo& rtCreateInfo)
+{
+	GPURenderTarget gpuRt;
+
+	D3D11_TEXTURE2D_DESC textureDesc;
+	ZeroMemory(&textureDesc, sizeof(textureDesc));
+	textureDesc.ArraySize = 1;
+	textureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+	textureDesc.CPUAccessFlags = 0;
+	textureDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	textureDesc.Width = rtCreateInfo.width;
+	textureDesc.Height = rtCreateInfo.height;
+	textureDesc.MipLevels = 1;
+	textureDesc.MiscFlags = 0;
+	textureDesc.SampleDesc.Count = 1;
+	textureDesc.SampleDesc.Quality = 0;
+	textureDesc.Usage = D3D11_USAGE_DEFAULT;
+	assert(SUCCEEDED(m_pD3dDevice->CreateTexture2D(&textureDesc, 0, &gpuRt.texture)));
+	m_ReleasableObjects.push_back(gpuRt.texture);
+
+	D3D11_RENDER_TARGET_VIEW_DESC rtvDesc;
+	ZeroMemory(&rtvDesc, sizeof(rtvDesc));
+	rtvDesc.Format = textureDesc.Format;
+	rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+	rtvDesc.Texture2D.MipSlice = 0;
+	assert(SUCCEEDED(m_pD3dDevice->CreateRenderTargetView(gpuRt.texture, 0, &gpuRt.rtv)));
+	m_ReleasableObjects.push_back(gpuRt.rtv);
+
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+	ZeroMemory(&srvDesc, sizeof(srvDesc));
+	srvDesc.Format = textureDesc.Format;
+	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Texture2D.MostDetailedMip = 0;
+	srvDesc.Texture2D.MipLevels = 1;
+	assert(SUCCEEDED(m_pD3dDevice->CreateShaderResourceView(gpuRt.texture, &srvDesc, &gpuRt.srv)));
+	m_ReleasableObjects.push_back(gpuRt.srv);
+
+	m_GpuRenderTargetMap.insert({ gpuRt.texture, gpuRt });
+	return gpuRt.texture;
 }
 
 void D3D11RHI::LoadVertexShader()

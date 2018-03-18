@@ -22,11 +22,16 @@ typedef void* RHIConstantBufferHandle;
 typedef void* RHIVertexBufferHandle;
 typedef void* RHIIndexBufferHandle;
 typedef void* RHITexture2DHandle;
+typedef void* RHIRenderTargetHandle;
+
+struct RHIRenderTargetCreateInfo {
+	int width, height;
+};
 
 class RHI
 {
 public:
-    virtual ~RHI() {};
+    virtual ~RHI() = default;
 
     virtual bool InitRHI(const Window& window) = 0;
     virtual void HandleWindowResize(uint32_t windowWidth, uint32_t windowHeight) = 0;
@@ -35,6 +40,7 @@ public:
     virtual RHIIndexBufferHandle CreateIndexBuffer(const std::vector<IndexType>& indices) = 0;
     virtual RHIConstantBufferHandle CreateConstantBuffer() = 0;
     virtual RHITexture2DHandle CreateTexture2D(const CPUTexture& cpuTexture) = 0;
+	virtual RHIRenderTargetHandle CreateRenderTarget(const RHIRenderTargetCreateInfo& rtCreateInfo) = 0;
 
     virtual RHITexture2DHandle GetDebugTexture2D() = 0;
 

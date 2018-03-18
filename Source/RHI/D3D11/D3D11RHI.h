@@ -11,12 +11,18 @@ class Window;
 namespace RHI {
 namespace D3D11 {
 
-class GPUTexture
+struct GPUTexture
 {
-public:
     ID3D11Texture2D* texture;
     ID3D11ShaderResourceView* srv;
     ID3D11SamplerState* sampler;
+};
+
+struct GPURenderTarget
+{
+	ID3D11Texture2D* texture;
+	ID3D11RenderTargetView* rtv;
+	ID3D11ShaderResourceView* srv;
 };
 
 class D3D11RHI : public RHI
@@ -30,6 +36,7 @@ public:
     virtual RHIIndexBufferHandle CreateIndexBuffer(const std::vector<IndexType>& indices) override;
     virtual RHIConstantBufferHandle CreateConstantBuffer() override;
     virtual RHITexture2DHandle CreateTexture2D(const CPUTexture& cpuTexture) override;
+	virtual RHIRenderTargetHandle CreateRenderTarget(const RHIRenderTargetCreateInfo& rtCreateInfo) override;
     virtual RHITexture2DHandle GetDebugTexture2D() override;
     virtual void LoadVertexShader() override;
     virtual void LoadPixelShader() override;
@@ -67,7 +74,8 @@ private:
     /* The RHI ensures these objects get cleaned up upon destruction, or upon a call to Release() */
     std::vector<UniqueReleasePtr<ID3D11DeviceChild>> m_ReleasableObjects;
 
-    std::map<RHITexture2DHandle, GPUTexture> m_GpuTextureMap;
+	std::map<RHITexture2DHandle, GPUTexture> m_GpuTextureMap;
+	std::map<RHIRenderTargetHandle, GPURenderTarget> m_GpuRenderTargetMap;
 };
 
 }

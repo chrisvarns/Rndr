@@ -61,6 +61,7 @@ public:
     std::unique_ptr<ImguiIntegration>           imgui;
 
 	std::vector<SharedPtr<Mesh> >				m_Meshes;
+	std::vector<RHI::RHIRenderTargetHandle>		m_Gbuffers;
     TextureMap                                  textureMap;
 
 	// Camera stuff
@@ -75,5 +76,6 @@ public:
 
 private:
     void ParseArg(const std::string& key, const std::string& value);
+	void SetupRenderTargets();
 };
 
