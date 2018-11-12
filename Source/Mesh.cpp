@@ -9,10 +9,10 @@
 #include "Mesh.h"
 
 #include "Engine.h"
-#include "RHI/RHI.h"
 #include "FileUtils.h"
+#include "D3D11/D3D11RHI.h"
 
-SharedDeletePtr<Mesh> Mesh::LoadMesh(const aiMesh& aimesh, const aiScene& aiscene, RHI::RHI& rhi)
+SharedDeletePtr<Mesh> Mesh::LoadMesh(const aiMesh& aimesh, const aiScene& aiscene, D3D11RHI& rhi)
 {
 	SharedDeletePtr<Mesh> mesh(new Mesh());
 	mesh->numFaces = aimesh.mNumFaces;
@@ -63,8 +63,8 @@ SharedDeletePtr<Mesh> Mesh::LoadMesh(const aiMesh& aimesh, const aiScene& aiscen
         aiString texPath;
         auto airet = material.GetTexture(aiTextureType_DIFFUSE, 0, &texPath, NULL, NULL, NULL, NULL, NULL);
         assert(airet == aiReturn_SUCCESS);
-        auto absoluteTexturePath = FileUtils::Combine(Engine::g_Engine->sceneAssetsBasePath, texPath.C_Str());
-        mesh->diffuseTexture = Engine::g_Engine->textureMap.GetTexture2DFromPath(absoluteTexturePath);
+        auto absoluteTexturePath = FileUtils::Combine(g_Engine->sceneAssetsBasePath, texPath.C_Str());
+        mesh->diffuseTexture = g_Engine->textureMap.GetTexture2DFromPath(absoluteTexturePath);
     }
     else
     {

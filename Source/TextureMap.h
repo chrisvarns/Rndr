@@ -2,13 +2,13 @@
 #include <string>
 #include <map>
 
-#include "RHI/RHI.h"
+struct ID3D11Texture2D;
 
 class TextureMap
 {
 public:
-    RHI::RHITexture2DHandle GetTexture2DFromPath(const std::string& path);
+    ID3D11Texture2D* GetTexture2DFromPath(const std::string& path);
 
 private:
-    std::map<std::string, RHI::RHITexture2DHandle> map;
+    std::map<std::string, ID3D11Texture2D*> map;
 };

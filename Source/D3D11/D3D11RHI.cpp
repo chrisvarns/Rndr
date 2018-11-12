@@ -12,9 +12,6 @@
 #include "Mesh.h"
 #include "FileUtils.h"
 
-namespace RHI {
-namespace D3D11 {
-
 bool D3D11RHI::InitRHI(const Window& window)
 {
 #pragma region Adapter
@@ -217,7 +214,7 @@ void D3D11RHI::HandleWindowResize(uint32_t windowWidth, uint32_t windowHeight)
     RecreateBackBufferRTAndView(windowWidth, windowHeight);
 }
 
-bool D3D11RHI::UpdateConstantBuffer(RHIConstantBufferHandle cbHandle, const ConstantBufferData& cbData)
+bool D3D11RHI::UpdateConstantBuffer(ID3D11Buffer* cbHandle, const ConstantBufferData& cbData)
 {
     auto d3dCbHandle = reinterpret_cast<ID3D11Resource*>(cbHandle);
 
@@ -233,7 +230,7 @@ bool D3D11RHI::UpdateConstantBuffer(RHIConstantBufferHandle cbHandle, const Cons
     return true;
 }
 
-RHIVertexBufferHandle D3D11RHI::CreateVertexBuffer(const aiVector3D* data, uint32_t numVertices)
+ID3D11Buffer* D3D11RHI::CreateVertexBuffer(const aiVector3D* data, uint32_t numVertices)
 {
     assert(data);
     assert(numVertices > 0);
@@ -259,7 +256,7 @@ RHIVertexBufferHandle D3D11RHI::CreateVertexBuffer(const aiVector3D* data, uint3
     return vertexBufferHandle;
 }
 
-RHIIndexBufferHandle D3D11RHI::CreateIndexBuffer(const std::vector<IndexType>& indices)
+ID3D11Buffer* D3D11RHI::CreateIndexBuffer(const std::vector<IndexType>& indices)
 {
     assert(indices.size() > 0);
     D3D11_BUFFER_DESC bufferDesc;
@@ -283,7 +280,7 @@ RHIIndexBufferHandle D3D11RHI::CreateIndexBuffer(const std::vector<IndexType>& i
     return indexBufferHandle;
 }
 
-RHIConstantBufferHandle D3D11RHI::CreateConstantBuffer()
+ID3D11Buffer* D3D11RHI::CreateConstantBuffer()
 {
     D3D11_BUFFER_DESC constantBufferDesc;
     ZeroMemory(&constantBufferDesc, sizeof(constantBufferDesc));
@@ -303,7 +300,7 @@ RHIConstantBufferHandle D3D11RHI::CreateConstantBuffer()
     return constantBufferHandle;
 }
 
-RHITexture2DHandle D3D11RHI::CreateTexture2D(const CPUTexture& cpuTexture)
+ID3D11Texture2D* D3D11RHI::CreateTexture2D(const CPUTexture& cpuTexture)
 {
 	auto max = glm::max(cpuTexture.width, cpuTexture.height);
 	int mipLevels = 1 + glm::log2(float(max));
@@ -354,7 +351,7 @@ RHITexture2DHandle D3D11RHI::CreateTexture2D(const CPUTexture& cpuTexture)
     return gpuTexture.texture;
 }
 
-RHIRenderTargetHandle D3D11RHI::CreateRenderTarget(const RHIRenderTargetCreateInfo& rtCreateInfo)
+ID3D11Texture2D* D3D11RHI::CreateRenderTarget(const RenderTargetCreateInfo& rtCreateInfo)
 {
 	GPURenderTarget gpuRt;
 
@@ -435,7 +432,7 @@ void D3D11RHI::SetPixelShader()
     m_pD3dContext->PSSetShader(m_pSolidColourPs.get(), 0, 0);
 }
 
-RHITexture2DHandle D3D11RHI::GetDebugTexture2D()
+ID3D11Texture2D* D3D11RHI::GetDebugTexture2D()
 {
     return m_DebugTexture2D;
 }
@@ -469,17 +466,4 @@ void D3D11RHI::DrawMesh(const Mesh& mesh)
 void D3D11RHI::Present()
 {
     m_pSwapChain->Present(0, 0);
-}
-
-void D3D11RHI::Release()
-{
-    m_ReleasableObjects.clear();
-}
-
-D3D11RHI::~D3D11RHI()
-{
-    Release();
-}
-
-}
 }

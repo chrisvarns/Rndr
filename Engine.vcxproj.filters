@@ -14,12 +14,12 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Source\RHI\D3D11\Shaders\ImGuiPS.hlsl" />
-    <FxCompile Include="Source\RHI\D3D11\Shaders\ImGuiVS.hlsl" />
-    <FxCompile Include="Source\RHI\D3D11\Shaders\PS.hlsl">
+    <FxCompile Include="Source\D3D11\Shaders\ImGuiPS.hlsl" />
+    <FxCompile Include="Source\D3D11\Shaders\ImGuiVS.hlsl" />
+    <FxCompile Include="Source\D3D11\Shaders\PS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="Source\RHI\D3D11\Shaders\VS.hlsl">
+    <FxCompile Include="Source\D3D11\Shaders\VS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
   </ItemGroup>
@@ -45,16 +45,16 @@
     <ClCompile Include="Source\Imgui\ImguiMenus.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\RHI\D3D11\D3D11RHI.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\RHI\D3D11\D3D11ImguiIntegration.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Source\FileUtils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Source\TextureMap.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\D3D11\D3D11ImguiIntegration.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\D3D11\D3D11RHI.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -83,19 +83,7 @@
     <ClInclude Include="Source\Imgui\imconfig.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\RHI\D3D11\D3D11RHI.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\RHI\RHI.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Window.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Imgui\ImguiIntegration.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\RHI\D3D11\D3D11ImguiIntegration.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\Imgui\stb_rect_pack.h">
@@ -107,13 +95,19 @@
     <ClInclude Include="Source\Imgui\stb_truetype.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\CPUTexture.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Source\FileUtils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\TextureMap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\D3D11\D3D11ImguiIntegration.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\D3D11\D3D11RHI.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\CPUTexture.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

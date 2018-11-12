@@ -2,9 +2,8 @@
 
 #include <vector>
 
-class CPUTexture
+struct CPUTexture
 {
-public:
-    int width, height;
-    std::vector<char> data;
+	int width, height;
+	std::vector<char> data;
 };

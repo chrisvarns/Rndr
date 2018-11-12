@@ -9,12 +9,9 @@
 #include <sdl/SDL_syswm.h>
 
 #include "Imgui/imgui.h"
-#include "RHI/D3D11/D3D11RHI.h"
+#include "D3D11/D3D11RHI.h"
 #include "FileUtils.h"
 #include "UniquePtr.h"
-
-namespace RHI {
-namespace D3D11 {
 
 // Data
 static INT64                    g_Time = 0;
@@ -453,9 +450,8 @@ static void SetClipboardText(void*, const char* text)
 	SDL_SetClipboardText(text);
 }
 
-bool D3D11ImGuiIntegration::Init(SDL_Window* window, RHI* rhi)
+bool D3D11ImGuiIntegration::Init(SDL_Window* window, D3D11RHI* d3d11rhi)
 {
-    auto d3d11rhi = dynamic_cast<D3D11RHI*>(rhi);
 	g_pd3dDevice = d3d11rhi->GetDevice();
 	g_pd3dDeviceContext = d3d11rhi->GetDeviceContext();
 
@@ -547,7 +543,4 @@ void D3D11ImGuiIntegration::NewFrame(SDL_Window* window)
 
 	// Start the frame
 	ImGui::NewFrame();
-}
-
-}
 }

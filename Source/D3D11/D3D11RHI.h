@@ -1,15 +1,16 @@
 #pragma once
-#include <d3d11.h>
 #include <vector>
 #include <map>
+#include <d3d11.h>
 
-#include "RHI\RHI.h"
+#include "glm/glm.hpp"
+#include "assimp/vector3.h"
+
 #include "UniquePtr.h"
 
 class Window;
-
-namespace RHI {
-namespace D3D11 {
+struct CPUTexture;
+class Mesh;
 
 struct GPUTexture
 {
@@ -25,28 +26,39 @@ struct GPURenderTarget
 	ID3D11ShaderResourceView* srv;
 };
 
-class D3D11RHI : public RHI
+struct ConstantBufferData
+{
+	glm::mat4 mvpMatrix;
+	glm::ivec4 renderMode;
+};
+
+struct RenderTargetCreateInfo {
+	int width;
+	int height;
+};
+
+typedef uint16_t IndexType;
+
+class D3D11RHI
 {
 public:
     // Interface stuff
-    ~D3D11RHI();
-    virtual bool InitRHI(const Window& window) override;
-    virtual void HandleWindowResize(uint32_t windowWidth, uint32_t windowHeight) override;
-    virtual RHIVertexBufferHandle CreateVertexBuffer(const aiVector3D* data, uint32_t numVertices) override;
-    virtual RHIIndexBufferHandle CreateIndexBuffer(const std::vector<IndexType>& indices) override;
-    virtual RHIConstantBufferHandle CreateConstantBuffer() override;
-    virtual RHITexture2DHandle CreateTexture2D(const CPUTexture& cpuTexture) override;
-	virtual RHIRenderTargetHandle CreateRenderTarget(const RHIRenderTargetCreateInfo& rtCreateInfo) override;
-    virtual RHITexture2DHandle GetDebugTexture2D() override;
-    virtual void LoadVertexShader() override;
-    virtual void LoadPixelShader() override;
-    virtual bool UpdateConstantBuffer(RHIConstantBufferHandle cbHandle, const ConstantBufferData& cb) override;
-    virtual void ClearBackBuffer(const std::array<float, 4>& clearColor) override;
-    virtual void SetVertexShader() override;
-    virtual void SetPixelShader() override;
-    virtual void DrawMesh(const Mesh& mesh) override;
-    virtual void Present() override;
-    virtual void Release() override;
+    bool InitRHI(const Window& window);
+    void HandleWindowResize(uint32_t windowWidth, uint32_t windowHeight);
+	ID3D11Buffer* CreateVertexBuffer(const aiVector3D* data, uint32_t numVertices);
+    ID3D11Buffer* CreateIndexBuffer(const std::vector<IndexType>& indices);
+    ID3D11Buffer* CreateConstantBuffer();
+    ID3D11Texture2D* CreateTexture2D(const CPUTexture& cpuTexture);
+	ID3D11Texture2D* CreateRenderTarget(const RenderTargetCreateInfo& rtCreateInfo);
+    ID3D11Texture2D*  GetDebugTexture2D();
+    void LoadVertexShader();
+    void LoadPixelShader();
+    bool UpdateConstantBuffer(ID3D11Buffer* cbHandle, const ConstantBufferData& cb);
+    void ClearBackBuffer(const std::array<float, 4>& clearColor);
+    void SetVertexShader();
+    void SetPixelShader();
+    void DrawMesh(const Mesh& mesh);
+    void Present();
 
     // Implementation
     ID3D11Device* GetDevice() const { return m_pD3dDevice.get(); }
@@ -69,14 +81,11 @@ private:
     UniqueReleasePtr<ID3D11InputLayout>			m_pInputLayout;
     UniqueReleasePtr<ID3D11VertexShader>		m_pSolidColourVs;
     UniqueReleasePtr<ID3D11PixelShader>			m_pSolidColourPs;
-    RHITexture2DHandle                          m_DebugTexture2D;
+    ID3D11Texture2D*                          m_DebugTexture2D;
 
     /* The RHI ensures these objects get cleaned up upon destruction, or upon a call to Release() */
     std::vector<UniqueReleasePtr<ID3D11DeviceChild>> m_ReleasableObjects;
 
-	std::map<RHITexture2DHandle, GPUTexture> m_GpuTextureMap;
-	std::map<RHIRenderTargetHandle, GPURenderTarget> m_GpuRenderTargetMap;
+	std::map<ID3D11Texture2D*, GPUTexture> m_GpuTextureMap;
+	std::map<ID3D11Texture2D*, GPURenderTarget> m_GpuRenderTargetMap;
 };
-
-}
-}

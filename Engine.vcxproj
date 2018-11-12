@@ -14,7 +14,7 @@
     <ProjectGuid>{9C55BC01-8740-4A36-B104-CF9AD111EE45}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>Engine</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -45,12 +45,16 @@
     <LibraryPath>$(LibraryPath)</LibraryPath>
     <ExecutablePath>$(VC_ExecutablePath_x64);$(WindowsSDK_ExecutablePath);$(VS_ExecutablePath);$(MSBuild_ExecutablePath);$(FxCopDir);$(PATH);</ExecutablePath>
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <OutDir>build\output\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>build\intermediate\$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <LibraryPath>$(LibraryPath)</LibraryPath>
     <ExecutablePath>$(VC_ExecutablePath_x64);$(WindowsSDK_ExecutablePath);$(VS_ExecutablePath);$(MSBuild_ExecutablePath);$(FxCopDir);$(PATH);</ExecutablePath>
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <OutDir>build\output\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>build\intermediate\$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -58,7 +62,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>GLM_FORCE_LEFT_HANDED;GLM_FORCE_DEPTH_ZERO_TO_ONE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)\3rdparty\include;$(ProjectDir)\Source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)3rdparty\include;$(ProjectDir)Source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <MinimalRebuild>false</MinimalRebuild>
       <AdditionalOptions>/std:c++latest %(AdditionalOptions)</AdditionalOptions>
@@ -108,15 +112,15 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <FxCompile Include="Source\RHI\D3D11\Shaders\ImGuiPS.hlsl">
+    <FxCompile Include="Source\D3D11\Shaders\ImGuiPS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
-    <FxCompile Include="Source\RHI\D3D11\Shaders\ImGuiVS.hlsl">
+    <FxCompile Include="Source\D3D11\Shaders\ImGuiVS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
-    <FxCompile Include="Source\RHI\D3D11\Shaders\PS.hlsl">
+    <FxCompile Include="Source\D3D11\Shaders\PS.hlsl">
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
       <TreatWarningAsError Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</TreatWarningAsError>
@@ -124,7 +128,7 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
-    <FxCompile Include="Source\RHI\D3D11\Shaders\VS.hlsl">
+    <FxCompile Include="Source\D3D11\Shaders\VS.hlsl">
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
@@ -137,8 +141,8 @@
   <ItemGroup>
     <ClCompile Include="Source\Engine.cpp" />
     <ClCompile Include="Source\Imgui\imgui.cpp" />
-    <ClCompile Include="Source\RHI\D3D11\D3D11RHI.cpp" />
-    <ClCompile Include="Source\RHI\D3D11\D3D11ImguiIntegration.cpp" />
+    <ClCompile Include="Source\D3D11\D3D11RHI.cpp" />
+    <ClCompile Include="Source\D3D11\D3D11ImguiIntegration.cpp" />
     <ClCompile Include="Source\Imgui\ImguiMenus.cpp" />
     <ClCompile Include="Source\Imgui\imgui_demo.cpp" />
     <ClCompile Include="Source\Imgui\imgui_draw.cpp" />
@@ -152,13 +156,11 @@
     <ClInclude Include="Source\Engine.h" />
     <ClInclude Include="Source\Imgui\imconfig.h" />
     <ClInclude Include="Source\Imgui\imgui.h" />
-    <ClInclude Include="Source\Imgui\ImguiIntegration.h" />
-    <ClInclude Include="Source\RHI\D3D11\D3D11RHI.h" />
-    <ClInclude Include="Source\RHI\D3D11\D3D11ImguiIntegration.h" />
+    <ClInclude Include="Source\D3D11\D3D11RHI.h" />
+    <ClInclude Include="Source\D3D11\D3D11ImguiIntegration.h" />
     <ClInclude Include="Source\Imgui\ImguiMenus.h" />
     <ClInclude Include="Source\Imgui\imgui_internal.h" />
     <ClInclude Include="Source\Mesh.h" />
-    <ClInclude Include="Source\RHI\RHI.h" />
     <ClInclude Include="Source\SharedPtr.h" />
     <ClInclude Include="Source\Imgui\stb_rect_pack.h" />
     <ClInclude Include="Source\Imgui\stb_textedit.h" />

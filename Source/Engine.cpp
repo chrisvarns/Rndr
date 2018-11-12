@@ -17,18 +17,16 @@
 #include <assimp/postprocess.h>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "Imgui/ImguiIntegration.h"
 #include "Imgui/ImguiMenus.h"
 #include "Imgui/imgui.h"
-#include "RHI/RHI.h"
-#include "RHI/D3D11/D3D11RHI.h"
-#include "RHI/D3D11/D3D11ImguiIntegration.h"
+#include "D3D11/D3D11RHI.h"
+#include "D3D11/D3D11ImguiIntegration.h"
 #include "FileUtils.h"
 #include "Mesh.h"
 
 using namespace std;
 
-Engine* Engine::g_Engine = nullptr;
+Engine* g_Engine = nullptr;
 
 // Special behavior for ++Colors
 RenderMode& operator++(RenderMode& rm) {
@@ -54,15 +52,13 @@ Engine::Engine(int argc, char** argv)
 	, m_ViewPos(0.f)
 	, m_ProjectionMatrix(1.f)
 	, m_RenderMode(RenderMode::Normals)
-    , rhi(make_unique<RHI::D3D11::D3D11RHI>())
-    , imgui(make_unique<RHI::D3D11::D3D11ImGuiIntegration>())
 {
     g_Engine = this;
 }
 
 Engine::~Engine()
 {
-	imgui->Shutdown();
+	imgui.Shutdown();
 }
 
 void Engine::ParseArg(const string& key, const string& value)
@@ -90,10 +86,10 @@ void Engine::ParseArg(const string& key, const string& value)
 void Engine::ParseArgs()
 {
     // First read the config file
-    string configFilename = string(SDL_GetBasePath()) + "config.txt";
-    if (std::experimental::filesystem::exists(configFilename))
+    auto configFilename = experimental::filesystem::absolute(string(SDL_GetBasePath()) + "../../../../config.txt");
+    if (experimental::filesystem::exists(configFilename))
     {
-        auto fileData = FileUtils::LoadFileAbsolute(configFilename);
+        auto fileData = FileUtils::LoadFileAbsolute(configFilename.string());
         string config = string(fileData.begin(), fileData.end());
         stringstream ss(config);
         string key;
@@ -147,9 +143,9 @@ bool Engine::Init()
 		return false;
 	}
 
-    rhi->InitRHI(window);
+    rhi.InitRHI(window);
 
-	imgui->Init(window.sdlWindow.get(), rhi.get());
+	imgui.Init(window.sdlWindow.get(), &rhi);
 
 	// TODO Feels a bit out of place here.
     UpdateProjectionMatrix();
@@ -161,13 +157,13 @@ bool Engine::Init()
 
 void Engine::SetupRenderTargets()
 {
-	RHI::RHIRenderTargetCreateInfo rtCreateInfo;
+	RenderTargetCreateInfo rtCreateInfo;
 	rtCreateInfo.width = window.width;
 	rtCreateInfo.height = window.height;
 	// Color
-	m_Gbuffers.push_back(rhi->CreateRenderTarget(rtCreateInfo));
+	m_Gbuffers.push_back(rhi.CreateRenderTarget(rtCreateInfo));
 	// Normal
-	m_Gbuffers.push_back(rhi->CreateRenderTarget(rtCreateInfo));
+	m_Gbuffers.push_back(rhi.CreateRenderTarget(rtCreateInfo));
 }
 
 bool Engine::Execute()
@@ -197,7 +193,7 @@ void Engine::ResizeWindow(int width, int height)
 	window.width = width;
 	window.height = height;
 
-    rhi->HandleWindowResize(width, height);
+    rhi.HandleWindowResize(width, height);
 
     UpdateProjectionMatrix();
 }
@@ -221,7 +217,7 @@ bool Engine::HandleEvents()
 	SDL_Event event;
 	while (SDL_PollEvent(&event))
 	{
-		imgui->ProcessEvent(&event);
+		imgui.ProcessEvent(&event);
 		switch (event.type)
 		{
 		case SDL_QUIT:
@@ -277,12 +273,12 @@ bool Engine::LoadContent()
 	for (uint32_t meshIdx = 0; meshIdx < pScene->mNumMeshes; ++meshIdx)
 	{
 		const aiMesh& aimesh = *pScene->mMeshes[meshIdx];
-		SharedDeletePtr<Mesh> mesh = Mesh::LoadMesh(aimesh, *pScene, *rhi.get());
+		SharedDeletePtr<Mesh> mesh = Mesh::LoadMesh(aimesh, *pScene, rhi);
 		m_Meshes.push_back(mesh);
 	}
 
-    rhi->LoadVertexShader();
-    rhi->LoadPixelShader();
+    rhi.LoadVertexShader();
+    rhi.LoadPixelShader();
 
 	return true;
 }
@@ -326,7 +322,7 @@ bool Engine::UpdateCamera(float deltaTime)
 
 bool Engine::Update(float deltaTime)
 {
-	imgui->NewFrame(window.sdlWindow.get());
+	imgui.NewFrame(window.sdlWindow.get());
 
 	UpdateCamera(deltaTime);
 
@@ -334,12 +330,12 @@ bool Engine::Update(float deltaTime)
 
 	for (auto& meshItr : m_Meshes)
 	{
-		RHI::ConstantBufferData constBuffer;
+		ConstantBufferData constBuffer;
 		constBuffer.mvpMatrix =  viewProjMatrix * meshItr->modelMatrix;
 		constBuffer.renderMode = glm::ivec4(static_cast<int>(m_RenderMode));
 
 		// Update the constant buffer...
-        rhi->UpdateConstantBuffer(meshItr->constantBuffer, constBuffer);
+        rhi.UpdateConstantBuffer(meshItr->constantBuffer, constBuffer);
 	}
 
 	return true;
@@ -348,19 +344,19 @@ bool Engine::Update(float deltaTime)
 bool Engine::Render()
 {
     std::array<float, 4> clearColor = { 0.f, 0.f, 0.25f, 1.f };
-    rhi->ClearBackBuffer(clearColor);
-    rhi->SetVertexShader();
-    rhi->SetPixelShader();
+    rhi.ClearBackBuffer(clearColor);
+    rhi.SetVertexShader();
+    rhi.SetPixelShader();
 
 	for (const auto& meshItr : m_Meshes)
 	{
-        rhi->DrawMesh(*meshItr);
+        rhi.DrawMesh(*meshItr);
 	}
 
 	ImGui::Integration::RenderMenus();
 	ImGui::Render();
 
-    rhi->Present();
+    rhi.Present();
 
 	return true;
 }

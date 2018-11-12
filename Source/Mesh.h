@@ -3,27 +3,24 @@
 #include <assimp/scene.h>
 #include <glm/glm.hpp>
 
-#include "RHI/RHI.h"
 #include "UniquePtr.h"
 #include "SharedPtr.h"
 
-namespace RHI {
-class RHI;
-}
+class D3D11RHI;
 
 class Mesh
 {
 public:
-	static SharedDeletePtr<Mesh>				LoadMesh(const aiMesh& aiMesh, const aiScene& aiscene, RHI::RHI& d3dDevice);
+	static SharedDeletePtr<Mesh>				LoadMesh(const aiMesh& aiMesh, const aiScene& aiscene, D3D11RHI& d3dDevice);
 
 	glm::mat4									modelMatrix;
 
-	RHI::RHIVertexBufferHandle       			positionBuffer;
-    RHI::RHIIndexBufferHandle  				    indexBuffer;
-	RHI::RHIVertexBufferHandle       			normalBuffer;
-    RHI::RHIVertexBufferHandle				    uvBuffer;
-	RHI::RHIConstantBufferHandle				constantBuffer;
-    RHI::RHITexture2DHandle                     diffuseTexture;
+	ID3D11Buffer*       						positionBuffer;
+	ID3D11Buffer*  								indexBuffer;
+	ID3D11Buffer*       						normalBuffer;
+	ID3D11Buffer*								uvBuffer;
+	ID3D11Buffer*								constantBuffer;
+    ID3D11Texture2D*							diffuseTexture;
 
 	uint32_t									numFaces;
 };

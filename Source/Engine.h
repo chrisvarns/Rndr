@@ -13,12 +13,8 @@
 #include "TextureMap.h"
 #include "UniquePtr.h"
 #include "Window.h"
-
-namespace RHI {
-class RHI;
-}
-
-class ImguiIntegration;
+#include "D3D11/D3D11RHI.h"
+#include "D3D11/D3D11ImguiIntegration.h"
 
 enum RenderMode {
 	SolidColour = 0,
@@ -34,7 +30,6 @@ RenderMode operator++(RenderMode& rm, int);
 class Engine
 {
 public:
-    static Engine* g_Engine;
 
 	Engine(int argc, char** argv);
 	~Engine();
@@ -57,11 +52,11 @@ public:
 
     Window          window;
 
-    std::unique_ptr<RHI::RHI>                   rhi;
-    std::unique_ptr<ImguiIntegration>           imgui;
+    D3D11RHI                   rhi;
+    D3D11ImGuiIntegration      imgui;
 
-	std::vector<SharedPtr<Mesh> >				m_Meshes;
-	std::vector<RHI::RHIRenderTargetHandle>		m_Gbuffers;
+	std::vector<SharedPtr<Mesh>>				m_Meshes;
+	std::vector<ID3D11Texture2D*>				m_Gbuffers;
     TextureMap                                  textureMap;
 
 	// Camera stuff
@@ -79,3 +74,4 @@ private:
 	void SetupRenderTargets();
 };
 
+extern Engine* g_Engine;
