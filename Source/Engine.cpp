@@ -35,13 +35,6 @@ RenderMode& operator++(RenderMode& rm) {
 	return rm;
 }
 
-// Special behavior for Colors++
-RenderMode operator++(RenderMode& rm, int) {
-	RenderMode result = rm;
-	++rm;
-	return result;
-}
-
 Engine::Engine(int argc, char** argv)
 	: m_NumCmdLineArgs(argc)
 	, m_CmdLineArgs(argv)
@@ -185,7 +178,7 @@ bool Engine::Execute()
 
 void Engine::UpdateProjectionMatrix()
 {
-	m_ProjectionMatrix = glm::perspective(45.f, (float)window.width / window.height, 0.1f, 100.f);
+	m_ProjectionMatrix = glm::perspective(45.f, (float)window.width / window.height, 0.01f, 100.f);
 }
 
 void Engine::ResizeWindow(int width, int height)
