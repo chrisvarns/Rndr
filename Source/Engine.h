@@ -22,10 +22,8 @@ struct GBuffers {
 };
 
 enum RenderMode {
-	SolidColour = 0,
+	Albedo = 0,
 	Normals,
-	UVs,
-	Depth,
 	END_OF_LIST
 };
 

@@ -21,9 +21,9 @@ struct GPUTexture
 
 struct GPURenderTarget
 {
-	ID3D11Texture2D* texture;
-	ID3D11RenderTargetView* rtv;
-	ID3D11ShaderResourceView* srv;
+	UniqueReleasePtr<ID3D11Texture2D> texture;
+	UniqueReleasePtr<ID3D11RenderTargetView> rtv;
+	UniqueReleasePtr<ID3D11ShaderResourceView> srv;
 };
 
 struct ConstantBufferData
@@ -60,8 +60,6 @@ public:
 	void ClearBackBufferColor(const std::array<float, 4>& clearColor);
 	void ClearBackBufferDepth();
 	void BeginOffscreenPass();
-	void SetRenderTargets(int num, ID3D11Texture2D** pRt);
-	void SetRenderTargetBackBuffer();
     void DrawMesh(const Mesh& mesh);
 	void Resolve();
 	void Present();
@@ -72,12 +70,11 @@ public:
 
 private:
     void RecreateBackBufferRTAndView(uint32_t windowWidth, uint32_t windowHeight);
+	void RecreateOffscreenRenderTargets(int width, int height);
     void CreateDebugTexture2D();
 	void CreateResolveQuadBuffers();
-	void CreateOffscreenRenderTargets(int width, int height);
 	ID3D11Texture2D* CreateRenderTargetColor(const RenderTargetCreateInfo& rtCreateInfo);
 	GPURenderTarget _CreateRenderTargetColor(const RenderTargetCreateInfo& rtCreateInfo);
-
 
     UniqueReleasePtr<IDXGIAdapter1>				m_pAdapter;
     UniqueReleasePtr<IDXGISwapChain>			m_pSwapChain;

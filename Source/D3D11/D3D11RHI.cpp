@@ -147,7 +147,7 @@ bool D3D11RHI::InitRHI(const Window& window)
 
 	CreateDebugTexture2D();
 	CreateResolveQuadBuffers();
-	CreateOffscreenRenderTargets(window.width, window.height);
+	RecreateOffscreenRenderTargets(window.width, window.height);
 	LoadVertexShaders();
 	LoadPixelShaders();
 
@@ -214,6 +214,7 @@ void D3D11RHI::HandleWindowResize(uint32_t windowWidth, uint32_t windowHeight)
 	m_pSwapChain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0);
 
 	RecreateBackBufferRTAndView(windowWidth, windowHeight);
+	RecreateOffscreenRenderTargets(windowWidth, windowHeight);
 }
 
 bool D3D11RHI::UpdateConstantBuffer(ID3D11Buffer* cbHandle, void* data, int numBytes)
@@ -368,8 +369,9 @@ ID3D11Texture2D* D3D11RHI::CreateRenderTargetColor(const RenderTargetCreateInfo&
 {
 	GPURenderTarget gpuRt = _CreateRenderTargetColor(rtCreateInfo);
 
-	m_GpuRenderTargetMap.insert({ gpuRt.texture, gpuRt });
-	return gpuRt.texture;
+	auto ret = gpuRt.texture.get();
+	m_GpuRenderTargetMap.insert({ ret, std::move(gpuRt) });
+	return ret;
 }
 
 GPURenderTarget D3D11RHI::_CreateRenderTargetColor(const RenderTargetCreateInfo& rtCreateInfo)
@@ -389,16 +391,14 @@ GPURenderTarget D3D11RHI::_CreateRenderTargetColor(const RenderTargetCreateInfo&
 	textureDesc.SampleDesc.Count = 1;
 	textureDesc.SampleDesc.Quality = 0;
 	textureDesc.Usage = D3D11_USAGE_DEFAULT;
-	assert(SUCCEEDED(m_pD3dDevice->CreateTexture2D(&textureDesc, 0, &gpuRt.texture)));
-	m_ReleasableObjects.push_back(gpuRt.texture);
+	assert(SUCCEEDED(m_pD3dDevice->CreateTexture2D(&textureDesc, 0, gpuRt.texture.GetRef())));
 
 	D3D11_RENDER_TARGET_VIEW_DESC rtvDesc;
 	ZeroMemory(&rtvDesc, sizeof(rtvDesc));
 	rtvDesc.Format = textureDesc.Format;
 	rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 	rtvDesc.Texture2D.MipSlice = 0;
-	assert(SUCCEEDED(m_pD3dDevice->CreateRenderTargetView(gpuRt.texture, 0, &gpuRt.rtv)));
-	m_ReleasableObjects.push_back(gpuRt.rtv);
+	assert(SUCCEEDED(m_pD3dDevice->CreateRenderTargetView(gpuRt.texture.get(), 0, gpuRt.rtv.GetRef())));
 
 	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
 	ZeroMemory(&srvDesc, sizeof(srvDesc));
@@ -406,8 +406,7 @@ GPURenderTarget D3D11RHI::_CreateRenderTargetColor(const RenderTargetCreateInfo&
 	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 	srvDesc.Texture2D.MostDetailedMip = 0;
 	srvDesc.Texture2D.MipLevels = 1;
-	assert(SUCCEEDED(m_pD3dDevice->CreateShaderResourceView(gpuRt.texture, &srvDesc, &gpuRt.srv)));
-	m_ReleasableObjects.push_back(gpuRt.srv);
+	assert(SUCCEEDED(m_pD3dDevice->CreateShaderResourceView(gpuRt.texture.get(), &srvDesc, gpuRt.srv.GetRef())));
 
 	return gpuRt;
 }
@@ -505,9 +504,13 @@ void D3D11RHI::ClearBackBufferDepth()
 void D3D11RHI::BeginOffscreenPass() {
 	ClearBackBufferDepth(); // We reuse the backbuffer depth for now
 
+	std::array<float, 4> clearColor = { 0.f, 0.f, 0.25f, 1.f };
+	m_pD3dContext->ClearRenderTargetView(_offscreenColorRT.rtv.get(), clearColor.data());
+	m_pD3dContext->ClearRenderTargetView(_offscreenNormalRT.rtv.get(), clearColor.data());
+
 	std::vector<ID3D11RenderTargetView*> offscreenRTs{
-		_offscreenColorRT.rtv,
-		_offscreenNormalRT.rtv
+		_offscreenColorRT.rtv.get(),
+		_offscreenNormalRT.rtv.get()
 	};
 	m_pD3dContext->OMSetRenderTargets(offscreenRTs.size(), offscreenRTs.data(), m_pDepthStencilRTView.get());
 
@@ -515,25 +518,6 @@ void D3D11RHI::BeginOffscreenPass() {
 	m_pD3dContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	m_pD3dContext->VSSetShader(_solidColorVertexShader.get(), 0, 0);
 	m_pD3dContext->PSSetShader(_solidColorPixelShader.get(), 0, 0);
-}
-
-void D3D11RHI::SetRenderTargets(int num, ID3D11Texture2D** pRt)
-{
-	std::vector<ID3D11RenderTargetView*> views;
-	for (int i = 0; i < num; i++) {
-		auto currentHandle = pRt[i];
-		assert(currentHandle != NULL);
-		assert(m_GpuRenderTargetMap.count(currentHandle));
-		auto& currentGpuRt = m_GpuRenderTargetMap[currentHandle];
-		views.push_back(currentGpuRt.rtv);
-	}
-
-	m_pD3dContext->OMSetRenderTargets(views.size(), views.data(), m_pDepthStencilRTView.get());
-}
-
-void D3D11RHI::SetRenderTargetBackBuffer()
-{
-	m_pD3dContext->OMSetRenderTargets(1, m_pBackBufferRTView.GetRef(), nullptr);
 }
 
 ID3D11Texture2D* D3D11RHI::GetDebugTexture2D()
@@ -586,7 +570,7 @@ void D3D11RHI::CreateResolveQuadBuffers()
 	_resolveSampler = CreateSampler();
 }
 
-void D3D11RHI::CreateOffscreenRenderTargets(int width, int height)
+void D3D11RHI::RecreateOffscreenRenderTargets(int width, int height)
 {
 	RenderTargetCreateInfo rtCreateInfo;
 	rtCreateInfo.width = width;
@@ -598,10 +582,8 @@ void D3D11RHI::CreateOffscreenRenderTargets(int width, int height)
 
 void D3D11RHI::Resolve()
 {
-	SetRenderTargetBackBuffer();
+	m_pD3dContext->OMSetRenderTargets(1, m_pBackBufferRTView.GetRef(), nullptr);
 
-	std::array<float, 4> clearColor = { 0.f, 0.f, 0.25f, 1.f };
-	ClearBackBufferColor(clearColor);
 	ClearBackBufferDepth();
 
 	unsigned int stride = sizeof(glm::vec2);
@@ -616,10 +598,17 @@ void D3D11RHI::Resolve()
 	m_pD3dContext->PSSetShader(_resolvePixelShader.get(), 0, 0);
 
 	m_pD3dContext->PSSetSamplers(0, 1, _resolveSampler.GetRef());
-	m_pD3dContext->PSSetShaderResources(0, 1, &_offscreenColorRT.srv);
 
+	auto srv = g_Engine->m_RenderMode == 0 ? _offscreenColorRT.srv.get() : _offscreenNormalRT.srv.get();
+
+	m_pD3dContext->PSSetShaderResources(0, 1, &srv);
 
 	m_pD3dContext->DrawIndexed(6, 0, 0);
+
+	// This stops warnings about binding still-bound SRV's as RTV's in the following frame.
+	ID3D11ShaderResourceView* nullView = nullptr;
+	m_pD3dContext->PSSetShaderResources(0, 1, &nullView);
+
 }
 
 void D3D11RHI::Present()

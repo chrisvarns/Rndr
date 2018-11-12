@@ -44,7 +44,7 @@ Engine::Engine(int argc, char** argv)
 	, m_ViewAngleH(0.f)
 	, m_ViewPos(0.f)
 	, m_ProjectionMatrix(1.f)
-	, m_RenderMode(RenderMode::Normals)
+	, m_RenderMode(RenderMode::Albedo)
 {
     g_Engine = this;
 }
