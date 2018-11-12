@@ -16,6 +16,11 @@
 #include "D3D11/D3D11RHI.h"
 #include "D3D11/D3D11ImguiIntegration.h"
 
+struct GBuffers {
+	ID3D11Texture2D* color;
+	ID3D11Texture2D* normal;
+};
+
 enum RenderMode {
 	SolidColour = 0,
 	Normals,
@@ -56,7 +61,6 @@ public:
     D3D11ImGuiIntegration      imgui;
 
 	std::vector<SharedPtr<Mesh>>				m_Meshes;
-	std::vector<ID3D11Texture2D*>				m_Gbuffers;
     TextureMap                                  textureMap;
 
 	// Camera stuff
@@ -71,7 +75,6 @@ public:
 
 private:
     void ParseArg(const std::string& key, const std::string& value);
-	void SetupRenderTargets();
 };
 
 extern Engine* g_Engine;

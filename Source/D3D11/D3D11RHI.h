@@ -29,7 +29,6 @@ struct GPURenderTarget
 struct ConstantBufferData
 {
 	glm::mat4 mvpMatrix;
-	glm::ivec4 renderMode;
 };
 
 struct RenderTargetCreateInfo {
@@ -45,20 +44,27 @@ public:
     // Interface stuff
     bool InitRHI(const Window& window);
     void HandleWindowResize(uint32_t windowWidth, uint32_t windowHeight);
-	ID3D11Buffer* CreateVertexBuffer(const aiVector3D* data, uint32_t numVertices);
+
+	template <class T>
+	ID3D11Buffer* CreateVertexBuffer(const T* data, uint32_t numVertices);
     ID3D11Buffer* CreateIndexBuffer(const std::vector<IndexType>& indices);
     ID3D11Buffer* CreateConstantBuffer();
     ID3D11Texture2D* CreateTexture2D(const CPUTexture& cpuTexture);
-	ID3D11Texture2D* CreateRenderTarget(const RenderTargetCreateInfo& rtCreateInfo);
-    ID3D11Texture2D*  GetDebugTexture2D();
-    void LoadVertexShader();
-    void LoadPixelShader();
-    bool UpdateConstantBuffer(ID3D11Buffer* cbHandle, const ConstantBufferData& cb);
-    void ClearBackBuffer(const std::array<float, 4>& clearColor);
-    void SetVertexShader();
-    void SetPixelShader();
+	ID3D11SamplerState*	CreateSampler();
+	//ID3D11Texture2D* CreateRenderTargetDepth(const RenderTargetCreateInfo& rtCreateInfo);
+	void LoadVertexShaders();
+	void LoadPixelShaders();
+
+	ID3D11Texture2D*  GetDebugTexture2D();
+    bool UpdateConstantBuffer(ID3D11Buffer* cbHandle, void* data, int numBytes);
+	void ClearBackBufferColor(const std::array<float, 4>& clearColor);
+	void ClearBackBufferDepth();
+	void BeginOffscreenPass();
+	void SetRenderTargets(int num, ID3D11Texture2D** pRt);
+	void SetRenderTargetBackBuffer();
     void DrawMesh(const Mesh& mesh);
-    void Present();
+	void Resolve();
+	void Present();
 
     // Implementation
     ID3D11Device* GetDevice() const { return m_pD3dDevice.get(); }
@@ -67,6 +73,11 @@ public:
 private:
     void RecreateBackBufferRTAndView(uint32_t windowWidth, uint32_t windowHeight);
     void CreateDebugTexture2D();
+	void CreateResolveQuadBuffers();
+	void CreateOffscreenRenderTargets(int width, int height);
+	ID3D11Texture2D* CreateRenderTargetColor(const RenderTargetCreateInfo& rtCreateInfo);
+	GPURenderTarget _CreateRenderTargetColor(const RenderTargetCreateInfo& rtCreateInfo);
+
 
     UniqueReleasePtr<IDXGIAdapter1>				m_pAdapter;
     UniqueReleasePtr<IDXGISwapChain>			m_pSwapChain;
@@ -78,10 +89,21 @@ private:
     UniqueReleasePtr<ID3D11DepthStencilView>	m_pDepthStencilRTView;
     UniqueReleasePtr<ID3D11DepthStencilState>	m_pDepthStencilState;
     UniqueReleasePtr<ID3D11RasterizerState>		m_pRasterState;
-    UniqueReleasePtr<ID3D11InputLayout>			m_pInputLayout;
-    UniqueReleasePtr<ID3D11VertexShader>		m_pSolidColourVs;
-    UniqueReleasePtr<ID3D11PixelShader>			m_pSolidColourPs;
-    ID3D11Texture2D*                          m_DebugTexture2D;
+	UniqueReleasePtr<ID3D11InputLayout>			_solidColorInputLayout;
+	UniqueReleasePtr<ID3D11VertexShader>		_solidColorVertexShader;
+	UniqueReleasePtr<ID3D11PixelShader>			_solidColorPixelShader;
+	
+	ID3D11Texture2D*							m_DebugTexture2D;
+	GPURenderTarget								_offscreenColorRT;
+	GPURenderTarget								_offscreenNormalRT;
+
+	UniqueReleasePtr<ID3D11InputLayout>			_resolveInputLayout;
+	UniqueReleasePtr<ID3D11VertexShader>		_resolveVertexShader;
+	UniqueReleasePtr<ID3D11PixelShader>			_resolvePixelShader;
+	UniqueReleasePtr<ID3D11Buffer>				_resolveQuadPositionBuffer;
+	UniqueReleasePtr<ID3D11Buffer>				_resolveQuadUVBuffer;
+	UniqueReleasePtr<ID3D11Buffer>				_resolveQuadIndexBuffer;
+	UniqueReleasePtr<ID3D11SamplerState>		_resolveSampler;
 
     /* The RHI ensures these objects get cleaned up upon destruction, or upon a call to Release() */
     std::vector<UniqueReleasePtr<ID3D11DeviceChild>> m_ReleasableObjects;

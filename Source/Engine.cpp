@@ -143,20 +143,7 @@ bool Engine::Init()
 	// TODO Feels a bit out of place here.
     UpdateProjectionMatrix();
 
-	SetupRenderTargets();
-
 	return true;
-}
-
-void Engine::SetupRenderTargets()
-{
-	RenderTargetCreateInfo rtCreateInfo;
-	rtCreateInfo.width = window.width;
-	rtCreateInfo.height = window.height;
-	// Color
-	m_Gbuffers.push_back(rhi.CreateRenderTarget(rtCreateInfo));
-	// Normal
-	m_Gbuffers.push_back(rhi.CreateRenderTarget(rtCreateInfo));
 }
 
 bool Engine::Execute()
@@ -270,9 +257,6 @@ bool Engine::LoadContent()
 		m_Meshes.push_back(mesh);
 	}
 
-    rhi.LoadVertexShader();
-    rhi.LoadPixelShader();
-
 	return true;
 }
 
@@ -325,10 +309,9 @@ bool Engine::Update(float deltaTime)
 	{
 		ConstantBufferData constBuffer;
 		constBuffer.mvpMatrix =  viewProjMatrix * meshItr->modelMatrix;
-		constBuffer.renderMode = glm::ivec4(static_cast<int>(m_RenderMode));
 
 		// Update the constant buffer...
-        rhi.UpdateConstantBuffer(meshItr->constantBuffer, constBuffer);
+        rhi.UpdateConstantBuffer(meshItr->constantBuffer, &constBuffer, sizeof(constBuffer));
 	}
 
 	return true;
@@ -336,15 +319,14 @@ bool Engine::Update(float deltaTime)
 
 bool Engine::Render()
 {
-    std::array<float, 4> clearColor = { 0.f, 0.f, 0.25f, 1.f };
-    rhi.ClearBackBuffer(clearColor);
-    rhi.SetVertexShader();
-    rhi.SetPixelShader();
+	rhi.BeginOffscreenPass();
 
 	for (const auto& meshItr : m_Meshes)
 	{
         rhi.DrawMesh(*meshItr);
 	}
+
+	rhi.Resolve();
 
 	ImGui::Integration::RenderMenus();
 	ImGui::Render();

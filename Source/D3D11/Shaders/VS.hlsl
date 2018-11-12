@@ -15,7 +15,6 @@ struct VSOut
 cbuffer VSConstantBuffer : register(b0)
 {
 	matrix MvpMatrix;
-	int4 renderMode;
 };
 
 VSOut main(VSIn input)
