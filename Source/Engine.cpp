@@ -327,7 +327,9 @@ bool Engine::Render()
 	}
 
 	rhi.BeginLightingPass();
-	rhi.DrawAmbient(glm::vec4(1.0, 1.0, 1.0, 1.0));
+	using namespace ImGui::Integration;
+	glm::vec3 ambient{ g_Lighting_Ambient[0], g_Lighting_Ambient[1], g_Lighting_Ambient[2] };
+	rhi.DrawAmbient(ambient);
 
 	ImGui::Integration::RenderMenus();
 	ImGui::Render();

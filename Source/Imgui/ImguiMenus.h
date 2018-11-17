@@ -2,10 +2,11 @@
 namespace ImGui::Integration
 {
 	void RenderMenus();
-	void RenderMainMenu();
-	void RenderCameraControlMenu(bool* pOpen);
 
 	// Controls
 	extern float g_Controls_Camera_Speed;
 	extern float g_Controls_Camera_Sensitivity;
+
+	// Lighting
+	extern float g_Lighting_Ambient[3];
 }

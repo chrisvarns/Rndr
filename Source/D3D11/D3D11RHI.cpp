@@ -626,7 +626,7 @@ void D3D11RHI::BeginLightingPass()
 	//m_pD3dContext->OMSetBlendState(_lightingBlendState.get(), );
 }
 
-void D3D11RHI::DrawAmbient(glm::vec4 color) {
+void D3D11RHI::DrawAmbient(glm::vec3 color) {
 	unsigned int stride = sizeof(glm::vec2);
 	unsigned int offset = 0;
 	m_pD3dContext->IASetVertexBuffers(0, 1, &_fullscreenQuadMesh.positionBuffer, &stride, &offset);
@@ -639,7 +639,8 @@ void D3D11RHI::DrawAmbient(glm::vec4 color) {
 	m_pD3dContext->VSSetShader(_ambientShader.vertexShader.get(), 0, 0);
 	m_pD3dContext->PSSetShader(_ambientShader.pixelShader.get(), 0, 0);
 
-	UpdateConstantBuffer(_ambientCb, &color, sizeof(color));
+	glm::vec4 amb = glm::vec4(color, 1.0f);
+	UpdateConstantBuffer(_ambientCb, &amb, sizeof(amb));
 	m_pD3dContext->PSSetConstantBuffers(0, 1, &_ambientCb);
 
 	m_pD3dContext->DrawIndexed(6, 0, 0);

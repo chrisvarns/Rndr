@@ -76,7 +76,7 @@ public:
 	void BeginGeometryPass();
 	void DrawMesh(const Mesh& mesh);
 	void BeginLightingPass();
-	void DrawAmbient(glm::vec4 color);
+	void DrawAmbient(glm::vec3 color);
 	void DrawDirectionalLight();
 	void Present();
 
