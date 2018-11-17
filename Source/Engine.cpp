@@ -307,7 +307,7 @@ bool Engine::Update(float deltaTime)
 
 	for (auto& meshItr : m_Meshes)
 	{
-		ConstantBufferData constBuffer;
+		GeometryConstantBufferLayout constBuffer;
 		constBuffer.mvpMatrix =  viewProjMatrix * meshItr->modelMatrix;
 
 		// Update the constant buffer...
@@ -327,6 +327,7 @@ bool Engine::Render()
 	}
 
 	rhi.BeginLightingPass();
+	rhi.DrawAmbient(glm::vec4(1.0, 1.0, 1.0, 1.0));
 
 	ImGui::Integration::RenderMenus();
 	ImGui::Render();

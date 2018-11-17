@@ -150,6 +150,7 @@ bool D3D11RHI::InitRHI(const Window& window)
 	RecreateOffscreenRenderTargets(window.width, window.height);
 	LoadVertexShaders();
 	LoadPixelShaders();
+	CreateLightingResources();
 
 	return true;
 }
@@ -286,11 +287,11 @@ ID3D11Buffer* D3D11RHI::CreateIndexBuffer(const std::vector<IndexType>& indices)
 	return indexBufferHandle;
 }
 
-ID3D11Buffer* D3D11RHI::CreateConstantBuffer()
+ID3D11Buffer* D3D11RHI::CreateConstantBuffer(int size)
 {
 	D3D11_BUFFER_DESC constantBufferDesc;
 	ZeroMemory(&constantBufferDesc, sizeof(constantBufferDesc));
-	constantBufferDesc.ByteWidth = sizeof(ConstantBufferData);
+	constantBufferDesc.ByteWidth = size;
 	constantBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
 	constantBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	constantBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
@@ -476,6 +477,17 @@ void D3D11RHI::LoadVertexShaders()
 		};
 		assert(SUCCEEDED(m_pD3dDevice->CreateInputLayout(vertexLayout, ARRAYSIZE(vertexLayout), vsData.data(), vsData.size(), _resolveShader.inputLayout.GetRef())));
 	}
+
+	{
+		auto vsData = FileUtils::LoadFile("AmbientVS.cso");
+		assert(SUCCEEDED(m_pD3dDevice->CreateVertexShader(vsData.data(), vsData.size(), 0, _ambientShader.vertexShader.GetRef())));
+		D3D11_INPUT_ELEMENT_DESC vertexLayout[] =
+		{
+			{ "POSITION",	0,	DXGI_FORMAT_R32G32_FLOAT,	0,	0,	D3D11_INPUT_PER_VERTEX_DATA,	0 },
+			{ "TEXCOORD",	0,	DXGI_FORMAT_R32G32_FLOAT,	1,	0,	D3D11_INPUT_PER_VERTEX_DATA,	0 }
+		};
+		assert(SUCCEEDED(m_pD3dDevice->CreateInputLayout(vertexLayout, ARRAYSIZE(vertexLayout), vsData.data(), vsData.size(), _ambientShader.inputLayout.GetRef())));
+	}
 }
 
 void D3D11RHI::LoadPixelShaders()
@@ -489,10 +501,16 @@ void D3D11RHI::LoadPixelShaders()
 		auto psData = FileUtils::LoadFile("ResolvePS.cso");
 		assert(SUCCEEDED(m_pD3dDevice->CreatePixelShader(psData.data(), psData.size(), 0, _resolveShader.pixelShader.GetRef())));
 	}
+
+	{
+		auto psData = FileUtils::LoadFile("AmbientPS.cso");
+		assert(SUCCEEDED(m_pD3dDevice->CreatePixelShader(psData.data(), psData.size(), 0, _ambientShader.pixelShader.GetRef())));
+	}
 }
 
-void D3D11RHI::ClearBackBufferColor(const std::array<float, 4>& clearColor)
+void D3D11RHI::ClearBackBufferColor()
 {
+	std::array<float, 4> clearColor = { 0.f, 0.f, 0.f, 1.f };
 	m_pD3dContext->ClearRenderTargetView(m_pBackBufferRTView.get(), clearColor.data());
 }
 
@@ -501,47 +519,9 @@ void D3D11RHI::ClearBackBufferDepth()
 	m_pD3dContext->ClearDepthStencilView(m_pDepthStencilRTView.get(), D3D11_CLEAR_DEPTH, 1.f, 0);
 }
 
-void D3D11RHI::BeginGeometryPass() {
-	ClearBackBufferDepth(); // We reuse the backbuffer depth for now
-
-	std::array<float, 4> clearColor = { 0.f, 0.f, 0.25f, 1.f };
-	m_pD3dContext->ClearRenderTargetView(_offscreenColorRT.rtv.get(), clearColor.data());
-	m_pD3dContext->DiscardView(_offscreenNormalRT.rtv.get());
-
-	std::vector<ID3D11RenderTargetView*> offscreenRTs{
-		_offscreenColorRT.rtv.get(),
-		_offscreenNormalRT.rtv.get()
-	};
-	m_pD3dContext->OMSetRenderTargets(offscreenRTs.size(), offscreenRTs.data(), m_pDepthStencilRTView.get());
-
-	m_pD3dContext->IASetInputLayout(_solidColorShader.inputLayout.get());
-	m_pD3dContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	m_pD3dContext->VSSetShader(_solidColorShader.vertexShader.get(), 0, 0);
-	m_pD3dContext->PSSetShader(_solidColorShader.pixelShader.get(), 0, 0);
-}
-
 ID3D11Texture2D* D3D11RHI::GetDebugTexture2D()
 {
 	return m_DebugTexture2D;
-}
-
-void D3D11RHI::DrawMesh(const Mesh& mesh)
-{
-	unsigned int stride = sizeof(aiVector3D);
-	unsigned int offset = 0;
-
-	m_pD3dContext->IASetVertexBuffers(0, 1, &mesh.gpuMesh.positionBuffer, &stride, &offset);
-	m_pD3dContext->IASetVertexBuffers(1, 1, &mesh.gpuMesh.normalBuffer, &stride, &offset);
-	m_pD3dContext->IASetVertexBuffers(2, 1, &mesh.gpuMesh.uvBuffer, &stride, &offset);
-	m_pD3dContext->IASetIndexBuffer(mesh.gpuMesh.indexBuffer, DXGI_FORMAT_R16_UINT, 0);
-	m_pD3dContext->VSSetConstantBuffers(0, 1, &mesh.constantBuffer);
-
-	//Diffuse
-	auto& diffuseTexture = m_GpuTextureMap.at(mesh.diffuseTexture);
-	m_pD3dContext->PSSetSamplers(0, 1, &diffuseTexture.sampler);
-	m_pD3dContext->PSSetShaderResources(0, 1, &diffuseTexture.srv);
-
-	m_pD3dContext->DrawIndexed(mesh.numFaces * 3, 0, 0);
 }
 
 void D3D11RHI::CreateResolveQuadBuffers()
@@ -567,7 +547,7 @@ void D3D11RHI::CreateResolveQuadBuffers()
 	_fullscreenQuadMesh.positionBuffer = CreateVertexBuffer(positions.data(), positions.size());
 	_fullscreenQuadMesh.uvBuffer = CreateVertexBuffer(uvs.data(), uvs.size());
 	_fullscreenQuadMesh.indexBuffer = CreateIndexBuffer(indices);
-	_resolveSampler = CreateSampler();
+	_gbufferSampler = CreateSampler();
 }
 
 void D3D11RHI::RecreateOffscreenRenderTargets(int width, int height)
@@ -580,14 +560,92 @@ void D3D11RHI::RecreateOffscreenRenderTargets(int width, int height)
 	_offscreenNormalRT = _CreateRenderTargetColor(rtCreateInfo);
 }
 
-//void D3D11RHI::DrawDirectionalLight() {
-//	m_pD3dContext->OMSetRenderTargets(1, m_pBackBufferRTView.GetRef(), nullptr);
-//}
+void D3D11RHI::CreateLightingResources() {
+	_ambientCb = CreateConstantBuffer(sizeof(AmbientConstantBufferLayout));
+
+	// Lighting additive blending
+	/*
+	D3D11_BLEND_DESC blendDesc;
+	blendDesc.AlphaToCoverageEnable = false;
+	blendDesc.IndependentBlendEnable = false;
+	blendDesc.RenderTarget[0].BlendEnable = true;
+	blendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+	assert(SUCCEEDED(m_pD3dDevice->CreateBlendState(&blendDesc, _lightingBlendState.GetRef())));
+	*/
+}
+
+void D3D11RHI::BeginGeometryPass() {
+	ClearBackBufferDepth(); // We reuse the backbuffer depth for now
+
+	std::array<float, 4> clearColor = { 0.f, 0.f, 0.25f, 1.f };
+	m_pD3dContext->ClearRenderTargetView(_offscreenColorRT.rtv.get(), clearColor.data());
+	m_pD3dContext->DiscardView(_offscreenNormalRT.rtv.get());
+
+	std::vector<ID3D11RenderTargetView*> offscreenRTs{
+		_offscreenColorRT.rtv.get(),
+		_offscreenNormalRT.rtv.get()
+	};
+	m_pD3dContext->OMSetRenderTargets(offscreenRTs.size(), offscreenRTs.data(), m_pDepthStencilRTView.get());
+	//m_pD3dContext->OMSetBlendState(nullptr, nullptr, 0xffffffff);
+
+	m_pD3dContext->IASetInputLayout(_solidColorShader.inputLayout.get());
+	m_pD3dContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	m_pD3dContext->VSSetShader(_solidColorShader.vertexShader.get(), 0, 0);
+	m_pD3dContext->PSSetShader(_solidColorShader.pixelShader.get(), 0, 0);
+}
+
+void D3D11RHI::DrawMesh(const Mesh& mesh)
+{
+	unsigned int stride = sizeof(aiVector3D);
+	unsigned int offset = 0;
+
+	m_pD3dContext->IASetVertexBuffers(0, 1, &mesh.gpuMesh.positionBuffer, &stride, &offset);
+	m_pD3dContext->IASetVertexBuffers(1, 1, &mesh.gpuMesh.normalBuffer, &stride, &offset);
+	m_pD3dContext->IASetVertexBuffers(2, 1, &mesh.gpuMesh.uvBuffer, &stride, &offset);
+	m_pD3dContext->IASetIndexBuffer(mesh.gpuMesh.indexBuffer, DXGI_FORMAT_R16_UINT, 0);
+	m_pD3dContext->VSSetConstantBuffers(0, 1, &mesh.constantBuffer);
+
+	//Diffuse
+	auto& diffuseTexture = m_GpuTextureMap.at(mesh.diffuseTexture);
+	m_pD3dContext->PSSetSamplers(0, 1, &diffuseTexture.sampler);
+	m_pD3dContext->PSSetShaderResources(0, 1, &diffuseTexture.srv);
+
+	m_pD3dContext->DrawIndexed(mesh.numFaces * 3, 0, 0);
+}
 
 void D3D11RHI::BeginLightingPass()
 {
+	ClearBackBufferColor();
 	m_pD3dContext->OMSetRenderTargets(1, m_pBackBufferRTView.GetRef(), nullptr);
 
+	m_pD3dContext->PSSetSamplers(0, 1, _gbufferSampler.GetRef());
+
+	std::vector<ID3D11ShaderResourceView*> srvs { _offscreenColorRT.srv.get(), _offscreenNormalRT.srv.get() };
+	m_pD3dContext->PSSetShaderResources(0, srvs.size(), srvs.data());
+
+	//m_pD3dContext->OMSetBlendState(_lightingBlendState.get(), );
+}
+
+void D3D11RHI::DrawAmbient(glm::vec4 color) {
+	unsigned int stride = sizeof(glm::vec2);
+	unsigned int offset = 0;
+	m_pD3dContext->IASetVertexBuffers(0, 1, &_fullscreenQuadMesh.positionBuffer, &stride, &offset);
+	m_pD3dContext->IASetVertexBuffers(1, 1, &_fullscreenQuadMesh.uvBuffer, &stride, &offset);
+	m_pD3dContext->IASetIndexBuffer(_fullscreenQuadMesh.indexBuffer, DXGI_FORMAT_R16_UINT, 0);
+
+	m_pD3dContext->IASetInputLayout(_ambientShader.inputLayout.get());
+	m_pD3dContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	m_pD3dContext->VSSetShader(_ambientShader.vertexShader.get(), 0, 0);
+	m_pD3dContext->PSSetShader(_ambientShader.pixelShader.get(), 0, 0);
+
+	UpdateConstantBuffer(_ambientCb, &color, sizeof(color));
+	m_pD3dContext->PSSetConstantBuffers(0, 1, &_ambientCb);
+
+	m_pD3dContext->DrawIndexed(6, 0, 0);
+}
+
+void D3D11RHI::DrawDirectionalLight() {
 	unsigned int stride = sizeof(glm::vec2);
 	unsigned int offset = 0;
 	m_pD3dContext->IASetVertexBuffers(0, 1, &_fullscreenQuadMesh.positionBuffer, &stride, &offset);
@@ -596,23 +654,18 @@ void D3D11RHI::BeginLightingPass()
 
 	m_pD3dContext->IASetInputLayout(_resolveShader.inputLayout.get());
 	m_pD3dContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
 	m_pD3dContext->VSSetShader(_resolveShader.vertexShader.get(), 0, 0);
 	m_pD3dContext->PSSetShader(_resolveShader.pixelShader.get(), 0, 0);
 
-	m_pD3dContext->PSSetSamplers(0, 1, _resolveSampler.GetRef());
-
-	auto srv = g_Engine->m_RenderMode == 0 ? _offscreenColorRT.srv.get() : _offscreenNormalRT.srv.get();
-
-	m_pD3dContext->PSSetShaderResources(0, 1, &srv);
-
 	m_pD3dContext->DrawIndexed(6, 0, 0);
-
-	// This stops warnings about binding still-bound SRV's as RTV's in the following frame.
-	ID3D11ShaderResourceView* nullView = nullptr;
-	m_pD3dContext->PSSetShaderResources(0, 1, &nullView);
 }
 
 void D3D11RHI::Present()
 {
 	m_pSwapChain->Present(0, 0);
+
+	// This stops warnings about binding still-bound SRV's as RTV's in the following frame.
+	std::vector<ID3D11ShaderResourceView*> srvs{ nullptr, nullptr };
+	m_pD3dContext->PSSetShaderResources(0, srvs.size(), srvs.data());
 }

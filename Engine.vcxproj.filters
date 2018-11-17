@@ -24,6 +24,8 @@
     </FxCompile>
     <FxCompile Include="Source\D3D11\Shaders\ResolvePS.hlsl" />
     <FxCompile Include="Source\D3D11\Shaders\ResolveVS.hlsl" />
+    <FxCompile Include="Source\D3D11\Shaders\AmbientVS.hlsl" />
+    <FxCompile Include="Source\D3D11\Shaders\AmbientPS.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Engine.cpp">

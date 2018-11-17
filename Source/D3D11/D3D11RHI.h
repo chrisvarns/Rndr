@@ -27,9 +27,14 @@ struct GPURenderTarget
 	UniqueReleasePtr<ID3D11ShaderResourceView> srv;
 };
 
-struct ConstantBufferData
+struct GeometryConstantBufferLayout
 {
 	glm::mat4 mvpMatrix;
+};
+
+struct AmbientConstantBufferLayout
+{
+	glm::vec4 mvpMatrix;
 };
 
 struct GPUShader
@@ -56,7 +61,7 @@ public:
 	template <class T>
 	ID3D11Buffer* CreateVertexBuffer(const T* data, uint32_t numVertices);
     ID3D11Buffer* CreateIndexBuffer(const std::vector<IndexType>& indices);
-    ID3D11Buffer* CreateConstantBuffer();
+    ID3D11Buffer* CreateConstantBuffer(int size);
     ID3D11Texture2D* CreateTexture2D(const CPUTexture& cpuTexture);
 	ID3D11SamplerState*	CreateSampler();
 	//ID3D11Texture2D* CreateRenderTargetDepth(const RenderTargetCreateInfo& rtCreateInfo);
@@ -65,11 +70,14 @@ public:
 
 	ID3D11Texture2D*  GetDebugTexture2D();
     bool UpdateConstantBuffer(ID3D11Buffer* cbHandle, void* data, int numBytes);
-	void ClearBackBufferColor(const std::array<float, 4>& clearColor);
+	void ClearBackBufferColor();
 	void ClearBackBufferDepth();
+
 	void BeginGeometryPass();
 	void DrawMesh(const Mesh& mesh);
 	void BeginLightingPass();
+	void DrawAmbient(glm::vec4 color);
+	void DrawDirectionalLight();
 	void Present();
 
     // Implementation
@@ -79,7 +87,8 @@ public:
 private:
     void RecreateBackBufferRTAndView(uint32_t windowWidth, uint32_t windowHeight);
 	void RecreateOffscreenRenderTargets(int width, int height);
-    void CreateDebugTexture2D();
+	void CreateLightingResources();
+	void CreateDebugTexture2D();
 	void CreateResolveQuadBuffers();
 	ID3D11Texture2D* CreateRenderTargetColor(const RenderTargetCreateInfo& rtCreateInfo);
 	GPURenderTarget _CreateRenderTargetColor(const RenderTargetCreateInfo& rtCreateInfo);
@@ -97,13 +106,18 @@ private:
 
 	GPUShader									_solidColorShader;
 	GPUShader									_resolveShader;
+	GPUShader									_ambientShader;
 	
 	ID3D11Texture2D*							m_DebugTexture2D;
 
 	GPURenderTarget								_offscreenColorRT;
 	GPURenderTarget								_offscreenNormalRT;
 
-	UniqueReleasePtr<ID3D11SamplerState>		_resolveSampler;
+	ID3D11Buffer*								_ambientCb;
+
+	UniqueReleasePtr<ID3D11SamplerState>		_gbufferSampler;
+
+	UniqueReleasePtr<ID3D11BlendState>			_lightingBlendState;
 
 	GPUMesh										_fullscreenQuadMesh;
 

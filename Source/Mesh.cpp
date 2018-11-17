@@ -46,7 +46,7 @@ SharedDeletePtr<Mesh> Mesh::LoadMesh(const aiMesh& aimesh, const aiScene& aiscen
     mesh->gpuMesh.normalBuffer = rhi.CreateVertexBuffer(aimesh.mNormals, aimesh.mNumVertices);
     mesh->gpuMesh.uvBuffer = rhi.CreateVertexBuffer(aimesh.mTextureCoords[0], aimesh.mNumVertices);
     mesh->gpuMesh.indexBuffer = rhi.CreateIndexBuffer(indices);
-    mesh->constantBuffer = rhi.CreateConstantBuffer();
+    mesh->constantBuffer = rhi.CreateConstantBuffer(sizeof(GeometryConstantBufferLayout));
 	assert(mesh->gpuMesh.positionBuffer);
 	assert(mesh->gpuMesh.normalBuffer);
 	assert(mesh->gpuMesh.uvBuffer);
