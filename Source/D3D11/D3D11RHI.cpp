@@ -456,25 +456,25 @@ void D3D11RHI::LoadVertexShaders()
 {
 	{
 		auto vsData = FileUtils::LoadFile("VS.cso");
-		assert(SUCCEEDED(m_pD3dDevice->CreateVertexShader(vsData.data(), vsData.size(), 0, _solidColorVertexShader.GetRef())));
+		assert(SUCCEEDED(m_pD3dDevice->CreateVertexShader(vsData.data(), vsData.size(), 0, _solidColorShader.vertexShader.GetRef())));
 		D3D11_INPUT_ELEMENT_DESC vertexLayout[] =
 		{
 			{ "POSITION",	0,	DXGI_FORMAT_R32G32B32_FLOAT,	0,	0,	D3D11_INPUT_PER_VERTEX_DATA,	0 },
 			{ "NORMAL",		0,	DXGI_FORMAT_R32G32B32_FLOAT,	1,	0,	D3D11_INPUT_PER_VERTEX_DATA,	0 },
 			{ "TEXCOORD",	0,	DXGI_FORMAT_R32G32B32_FLOAT,	2,	0,	D3D11_INPUT_PER_VERTEX_DATA,	0 }
 		};
-		assert(SUCCEEDED(m_pD3dDevice->CreateInputLayout(vertexLayout, ARRAYSIZE(vertexLayout), vsData.data(), vsData.size(), _solidColorInputLayout.GetRef())));
+		assert(SUCCEEDED(m_pD3dDevice->CreateInputLayout(vertexLayout, ARRAYSIZE(vertexLayout), vsData.data(), vsData.size(), _solidColorShader.inputLayout.GetRef())));
 	}
 
 	{
 		auto vsData = FileUtils::LoadFile("ResolveVS.cso");
-		assert(SUCCEEDED(m_pD3dDevice->CreateVertexShader(vsData.data(), vsData.size(), 0, _resolveVertexShader.GetRef())));
+		assert(SUCCEEDED(m_pD3dDevice->CreateVertexShader(vsData.data(), vsData.size(), 0, _resolveShader.vertexShader.GetRef())));
 		D3D11_INPUT_ELEMENT_DESC vertexLayout[] =
 		{
 			{ "POSITION",	0,	DXGI_FORMAT_R32G32_FLOAT,	0,	0,	D3D11_INPUT_PER_VERTEX_DATA,	0 },
 			{ "TEXCOORD",	0,	DXGI_FORMAT_R32G32_FLOAT,	1,	0,	D3D11_INPUT_PER_VERTEX_DATA,	0 }
 		};
-		assert(SUCCEEDED(m_pD3dDevice->CreateInputLayout(vertexLayout, ARRAYSIZE(vertexLayout), vsData.data(), vsData.size(), _resolveInputLayout.GetRef())));
+		assert(SUCCEEDED(m_pD3dDevice->CreateInputLayout(vertexLayout, ARRAYSIZE(vertexLayout), vsData.data(), vsData.size(), _resolveShader.inputLayout.GetRef())));
 	}
 }
 
@@ -482,12 +482,12 @@ void D3D11RHI::LoadPixelShaders()
 {
 	{
 		auto psData = FileUtils::LoadFile("PS.cso");
-		assert(SUCCEEDED(m_pD3dDevice->CreatePixelShader(psData.data(), psData.size(), 0, _solidColorPixelShader.GetRef())));
+		assert(SUCCEEDED(m_pD3dDevice->CreatePixelShader(psData.data(), psData.size(), 0, _solidColorShader.pixelShader.GetRef())));
 	}
 
 	{
 		auto psData = FileUtils::LoadFile("ResolvePS.cso");
-		assert(SUCCEEDED(m_pD3dDevice->CreatePixelShader(psData.data(), psData.size(), 0, _resolvePixelShader.GetRef())));
+		assert(SUCCEEDED(m_pD3dDevice->CreatePixelShader(psData.data(), psData.size(), 0, _resolveShader.pixelShader.GetRef())));
 	}
 }
 
@@ -514,10 +514,10 @@ void D3D11RHI::BeginGeometryPass() {
 	};
 	m_pD3dContext->OMSetRenderTargets(offscreenRTs.size(), offscreenRTs.data(), m_pDepthStencilRTView.get());
 
-	m_pD3dContext->IASetInputLayout(_solidColorInputLayout.get());
+	m_pD3dContext->IASetInputLayout(_solidColorShader.inputLayout.get());
 	m_pD3dContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	m_pD3dContext->VSSetShader(_solidColorVertexShader.get(), 0, 0);
-	m_pD3dContext->PSSetShader(_solidColorPixelShader.get(), 0, 0);
+	m_pD3dContext->VSSetShader(_solidColorShader.vertexShader.get(), 0, 0);
+	m_pD3dContext->PSSetShader(_solidColorShader.pixelShader.get(), 0, 0);
 }
 
 ID3D11Texture2D* D3D11RHI::GetDebugTexture2D()
@@ -530,10 +530,10 @@ void D3D11RHI::DrawMesh(const Mesh& mesh)
 	unsigned int stride = sizeof(aiVector3D);
 	unsigned int offset = 0;
 
-	m_pD3dContext->IASetVertexBuffers(0, 1, &mesh.positionBuffer, &stride, &offset);
-	m_pD3dContext->IASetVertexBuffers(1, 1, &mesh.normalBuffer, &stride, &offset);
-	m_pD3dContext->IASetVertexBuffers(2, 1, &mesh.uvBuffer, &stride, &offset);
-	m_pD3dContext->IASetIndexBuffer(mesh.indexBuffer, DXGI_FORMAT_R16_UINT, 0);
+	m_pD3dContext->IASetVertexBuffers(0, 1, &mesh.gpuMesh.positionBuffer, &stride, &offset);
+	m_pD3dContext->IASetVertexBuffers(1, 1, &mesh.gpuMesh.normalBuffer, &stride, &offset);
+	m_pD3dContext->IASetVertexBuffers(2, 1, &mesh.gpuMesh.uvBuffer, &stride, &offset);
+	m_pD3dContext->IASetIndexBuffer(mesh.gpuMesh.indexBuffer, DXGI_FORMAT_R16_UINT, 0);
 	m_pD3dContext->VSSetConstantBuffers(0, 1, &mesh.constantBuffer);
 
 	//Diffuse
@@ -564,9 +564,9 @@ void D3D11RHI::CreateResolveQuadBuffers()
 		0, 1, 2, 2, 1, 3
 	};
 
-	_resolveQuadPositionBuffer = CreateVertexBuffer(positions.data(), positions.size());
-	_resolveQuadUVBuffer = CreateVertexBuffer(uvs.data(), uvs.size());
-	_resolveQuadIndexBuffer = CreateIndexBuffer(indices);
+	_fullscreenQuadMesh.positionBuffer = CreateVertexBuffer(positions.data(), positions.size());
+	_fullscreenQuadMesh.uvBuffer = CreateVertexBuffer(uvs.data(), uvs.size());
+	_fullscreenQuadMesh.indexBuffer = CreateIndexBuffer(indices);
 	_resolveSampler = CreateSampler();
 }
 
@@ -580,22 +580,24 @@ void D3D11RHI::RecreateOffscreenRenderTargets(int width, int height)
 	_offscreenNormalRT = _CreateRenderTargetColor(rtCreateInfo);
 }
 
-void D3D11RHI::Resolve()
+//void D3D11RHI::DrawDirectionalLight() {
+//	m_pD3dContext->OMSetRenderTargets(1, m_pBackBufferRTView.GetRef(), nullptr);
+//}
+
+void D3D11RHI::BeginLightingPass()
 {
 	m_pD3dContext->OMSetRenderTargets(1, m_pBackBufferRTView.GetRef(), nullptr);
 
-	ClearBackBufferDepth();
-
 	unsigned int stride = sizeof(glm::vec2);
 	unsigned int offset = 0;
-	m_pD3dContext->IASetVertexBuffers(0, 1, _resolveQuadPositionBuffer.GetRef(), &stride, &offset);
-	m_pD3dContext->IASetVertexBuffers(1, 1, _resolveQuadUVBuffer.GetRef(), &stride, &offset);
-	m_pD3dContext->IASetIndexBuffer(_resolveQuadIndexBuffer.get(), DXGI_FORMAT_R16_UINT, 0);
+	m_pD3dContext->IASetVertexBuffers(0, 1, &_fullscreenQuadMesh.positionBuffer, &stride, &offset);
+	m_pD3dContext->IASetVertexBuffers(1, 1, &_fullscreenQuadMesh.uvBuffer, &stride, &offset);
+	m_pD3dContext->IASetIndexBuffer(_fullscreenQuadMesh.indexBuffer, DXGI_FORMAT_R16_UINT, 0);
 
-	m_pD3dContext->IASetInputLayout(_resolveInputLayout.get());
+	m_pD3dContext->IASetInputLayout(_resolveShader.inputLayout.get());
 	m_pD3dContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	m_pD3dContext->VSSetShader(_resolveVertexShader.get(), 0, 0);
-	m_pD3dContext->PSSetShader(_resolvePixelShader.get(), 0, 0);
+	m_pD3dContext->VSSetShader(_resolveShader.vertexShader.get(), 0, 0);
+	m_pD3dContext->PSSetShader(_resolveShader.pixelShader.get(), 0, 0);
 
 	m_pD3dContext->PSSetSamplers(0, 1, _resolveSampler.GetRef());
 

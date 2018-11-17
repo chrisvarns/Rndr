@@ -5,6 +5,7 @@
 
 #include "UniquePtr.h"
 #include "SharedPtr.h"
+#include "GPUMesh.h"
 
 class D3D11RHI;
 
@@ -15,10 +16,7 @@ public:
 
 	glm::mat4									modelMatrix;
 
-	ID3D11Buffer*       						positionBuffer;
-	ID3D11Buffer*  								indexBuffer;
-	ID3D11Buffer*       						normalBuffer;
-	ID3D11Buffer*								uvBuffer;
+	GPUMesh										gpuMesh;
 	ID3D11Buffer*								constantBuffer;
     ID3D11Texture2D*							diffuseTexture;
 

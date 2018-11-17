@@ -162,6 +162,7 @@
   <ItemGroup>
     <ClInclude Include="Source\CPUTexture.h" />
     <ClInclude Include="Source\Engine.h" />
+    <ClInclude Include="Source\GPUMesh.h" />
     <ClInclude Include="Source\Imgui\imconfig.h" />
     <ClInclude Include="Source\Imgui\imgui.h" />
     <ClInclude Include="Source\D3D11\D3D11RHI.h" />

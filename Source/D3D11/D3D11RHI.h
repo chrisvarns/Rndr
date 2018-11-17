@@ -7,6 +7,7 @@
 #include "assimp/vector3.h"
 
 #include "UniquePtr.h"
+#include "GPUMesh.h"
 
 class Window;
 struct CPUTexture;
@@ -29,6 +30,13 @@ struct GPURenderTarget
 struct ConstantBufferData
 {
 	glm::mat4 mvpMatrix;
+};
+
+struct GPUShader
+{
+	UniqueReleasePtr<ID3D11InputLayout>			inputLayout;
+	UniqueReleasePtr<ID3D11VertexShader>		vertexShader;
+	UniqueReleasePtr<ID3D11PixelShader>			pixelShader;
 };
 
 struct RenderTargetCreateInfo {
@@ -61,7 +69,7 @@ public:
 	void ClearBackBufferDepth();
 	void BeginGeometryPass();
 	void DrawMesh(const Mesh& mesh);
-	void Resolve();
+	void BeginLightingPass();
 	void Present();
 
     // Implementation
@@ -86,21 +94,18 @@ private:
     UniqueReleasePtr<ID3D11DepthStencilView>	m_pDepthStencilRTView;
     UniqueReleasePtr<ID3D11DepthStencilState>	m_pDepthStencilState;
     UniqueReleasePtr<ID3D11RasterizerState>		m_pRasterState;
-	UniqueReleasePtr<ID3D11InputLayout>			_solidColorInputLayout;
-	UniqueReleasePtr<ID3D11VertexShader>		_solidColorVertexShader;
-	UniqueReleasePtr<ID3D11PixelShader>			_solidColorPixelShader;
+
+	GPUShader									_solidColorShader;
+	GPUShader									_resolveShader;
 	
 	ID3D11Texture2D*							m_DebugTexture2D;
+
 	GPURenderTarget								_offscreenColorRT;
 	GPURenderTarget								_offscreenNormalRT;
 
-	UniqueReleasePtr<ID3D11InputLayout>			_resolveInputLayout;
-	UniqueReleasePtr<ID3D11VertexShader>		_resolveVertexShader;
-	UniqueReleasePtr<ID3D11PixelShader>			_resolvePixelShader;
-	UniqueReleasePtr<ID3D11Buffer>				_resolveQuadPositionBuffer;
-	UniqueReleasePtr<ID3D11Buffer>				_resolveQuadUVBuffer;
-	UniqueReleasePtr<ID3D11Buffer>				_resolveQuadIndexBuffer;
 	UniqueReleasePtr<ID3D11SamplerState>		_resolveSampler;
+
+	GPUMesh										_fullscreenQuadMesh;
 
     /* The RHI ensures these objects get cleaned up upon destruction, or upon a call to Release() */
     std::vector<UniqueReleasePtr<ID3D11DeviceChild>> m_ReleasableObjects;

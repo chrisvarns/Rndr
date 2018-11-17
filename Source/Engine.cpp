@@ -326,7 +326,7 @@ bool Engine::Render()
         rhi.DrawMesh(*meshItr);
 	}
 
-	rhi.Resolve();
+	rhi.BeginLightingPass();
 
 	ImGui::Integration::RenderMenus();
 	ImGui::Render();

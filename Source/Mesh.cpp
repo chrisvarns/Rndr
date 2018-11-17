@@ -42,15 +42,15 @@ SharedDeletePtr<Mesh> Mesh::LoadMesh(const aiMesh& aimesh, const aiScene& aiscen
 	assert(aimesh.GetNumUVChannels() == 1);
 	assert(aimesh.mTextureCoords[0]);
 
-    mesh->positionBuffer = rhi.CreateVertexBuffer(aimesh.mVertices, aimesh.mNumVertices);
-    mesh->normalBuffer = rhi.CreateVertexBuffer(aimesh.mNormals, aimesh.mNumVertices);
-    mesh->uvBuffer = rhi.CreateVertexBuffer(aimesh.mTextureCoords[0], aimesh.mNumVertices);
-    mesh->indexBuffer = rhi.CreateIndexBuffer(indices);
+    mesh->gpuMesh.positionBuffer = rhi.CreateVertexBuffer(aimesh.mVertices, aimesh.mNumVertices);
+    mesh->gpuMesh.normalBuffer = rhi.CreateVertexBuffer(aimesh.mNormals, aimesh.mNumVertices);
+    mesh->gpuMesh.uvBuffer = rhi.CreateVertexBuffer(aimesh.mTextureCoords[0], aimesh.mNumVertices);
+    mesh->gpuMesh.indexBuffer = rhi.CreateIndexBuffer(indices);
     mesh->constantBuffer = rhi.CreateConstantBuffer();
-    assert(mesh->positionBuffer);
-    assert(mesh->normalBuffer);
-    assert(mesh->uvBuffer);
-    assert(mesh->indexBuffer);
+	assert(mesh->gpuMesh.positionBuffer);
+	assert(mesh->gpuMesh.normalBuffer);
+	assert(mesh->gpuMesh.uvBuffer);
+	assert(mesh->gpuMesh.indexBuffer);
     assert(mesh->constantBuffer);
 
     assert(aiscene.HasMaterials());
