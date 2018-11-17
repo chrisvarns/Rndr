@@ -8,7 +8,7 @@
 #include <string>
 #include <utility>
 
-#include <d3d11.h>
+#include <d3d11_1.h>
 #include <d3d11sdklayers.h>
 #include <d3dcompiler.h>
 #include <sdl/SDL.h>
@@ -319,7 +319,7 @@ bool Engine::Update(float deltaTime)
 
 bool Engine::Render()
 {
-	rhi.BeginOffscreenPass();
+	rhi.BeginGeometryPass();
 
 	for (const auto& meshItr : m_Meshes)
 	{

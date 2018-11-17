@@ -1,7 +1,7 @@
 // ImGui SDL + DirectX11 integration binding
 #include "D3D11ImguiIntegration.h"
 
-#include <d3d11.h>
+#include <d3d11_1.h>
 #include <d3dcompiler.h>
 #define DIRECTINPUT_VERSION 0x0800
 #include <dinput.h>

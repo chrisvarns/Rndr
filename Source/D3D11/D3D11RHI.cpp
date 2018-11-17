@@ -3,7 +3,7 @@
 #include <array>
 #include <vector>
 
-#include <d3d11.h>
+#include <d3d11_1.h>
 #include <atlbase.h>
 
 #include "sdl/SDL.h"
@@ -88,7 +88,7 @@ bool D3D11RHI::InitRHI(const Window& window)
 	if (FAILED(D3D11CreateDeviceAndSwapChain(
 		m_pAdapter.get(), D3D_DRIVER_TYPE_UNKNOWN, NULL, creationFlags,
 		featureLevels, numFeatureLevels, D3D11_SDK_VERSION, &swapChainDesc,
-		m_pSwapChain.GetRef(), m_pD3dDevice.GetRef(), &featureLevel, m_pD3dContext.GetRef())))
+		m_pSwapChain.GetRef(), m_pD3dDevice.GetRef(), &featureLevel, (ID3D11DeviceContext**)m_pD3dContext.GetRef())))
 	{
 		SDL_Log("D3D11CreateDeviceAndSwapChain failed.");
 		return false;
@@ -501,12 +501,12 @@ void D3D11RHI::ClearBackBufferDepth()
 	m_pD3dContext->ClearDepthStencilView(m_pDepthStencilRTView.get(), D3D11_CLEAR_DEPTH, 1.f, 0);
 }
 
-void D3D11RHI::BeginOffscreenPass() {
+void D3D11RHI::BeginGeometryPass() {
 	ClearBackBufferDepth(); // We reuse the backbuffer depth for now
 
 	std::array<float, 4> clearColor = { 0.f, 0.f, 0.25f, 1.f };
 	m_pD3dContext->ClearRenderTargetView(_offscreenColorRT.rtv.get(), clearColor.data());
-	m_pD3dContext->ClearRenderTargetView(_offscreenNormalRT.rtv.get(), clearColor.data());
+	m_pD3dContext->DiscardView(_offscreenNormalRT.rtv.get());
 
 	std::vector<ID3D11RenderTargetView*> offscreenRTs{
 		_offscreenColorRT.rtv.get(),
@@ -608,7 +608,6 @@ void D3D11RHI::Resolve()
 	// This stops warnings about binding still-bound SRV's as RTV's in the following frame.
 	ID3D11ShaderResourceView* nullView = nullptr;
 	m_pD3dContext->PSSetShaderResources(0, 1, &nullView);
-
 }
 
 void D3D11RHI::Present()

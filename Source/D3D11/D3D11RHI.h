@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 #include <map>
-#include <d3d11.h>
+#include <d3d11_1.h>
 
 #include "glm/glm.hpp"
 #include "assimp/vector3.h"
@@ -59,8 +59,8 @@ public:
     bool UpdateConstantBuffer(ID3D11Buffer* cbHandle, void* data, int numBytes);
 	void ClearBackBufferColor(const std::array<float, 4>& clearColor);
 	void ClearBackBufferDepth();
-	void BeginOffscreenPass();
-    void DrawMesh(const Mesh& mesh);
+	void BeginGeometryPass();
+	void DrawMesh(const Mesh& mesh);
 	void Resolve();
 	void Present();
 
@@ -79,7 +79,7 @@ private:
     UniqueReleasePtr<IDXGIAdapter1>				m_pAdapter;
     UniqueReleasePtr<IDXGISwapChain>			m_pSwapChain;
     UniqueReleasePtr<ID3D11Device>				m_pD3dDevice;
-    UniqueReleasePtr<ID3D11DeviceContext>		m_pD3dContext;
+    UniqueReleasePtr<ID3D11DeviceContext1>		m_pD3dContext;
     UniqueReleasePtr<ID3D11Texture2D>			m_pBackBufferRT;
     UniqueReleasePtr<ID3D11RenderTargetView>	m_pBackBufferRTView;
     UniqueReleasePtr<ID3D11Texture2D>			m_pDepthStencilRT;
