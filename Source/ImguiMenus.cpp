@@ -4,8 +4,8 @@
 #include "glm/gtx/matrix_decompose.hpp"
 #include "glm/gtx/quaternion.hpp"
 
-#include "imgui.h"
-#include "ImGuizmo.h"
+#include "imgui/imgui.h"
+#include "imgui/ImGuizmo.h"
 #include "Engine.h"
 
 namespace ImGui::Integration

@@ -17,7 +17,7 @@
 #include <assimp/postprocess.h>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "Imgui/ImguiMenus.h"
+#include "ImguiMenus.h"
 #include "Imgui/imgui.h"
 #include "imgui/imgui_impl_sdl.h"
 #include "imgui/imgui_impl_dx11.h"

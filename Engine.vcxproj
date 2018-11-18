@@ -168,7 +168,7 @@
     <ClCompile Include="Source\Engine.cpp" />
     <ClCompile Include="Source\Imgui\imgui.cpp" />
     <ClCompile Include="Source\D3D11RHI.cpp" />
-    <ClCompile Include="Source\Imgui\ImguiMenus.cpp" />
+    <ClCompile Include="Source\ImguiMenus.cpp" />
     <ClCompile Include="Source\Imgui\ImGuizmo.cpp" />
     <ClCompile Include="Source\Imgui\imgui_demo.cpp" />
     <ClCompile Include="Source\Imgui\imgui_draw.cpp" />
@@ -187,7 +187,7 @@
     <ClInclude Include="Source\Imgui\imconfig.h" />
     <ClInclude Include="Source\Imgui\imgui.h" />
     <ClInclude Include="Source\D3D11RHI.h" />
-    <ClInclude Include="Source\Imgui\ImguiMenus.h" />
+    <ClInclude Include="Source\ImguiMenus.h" />
     <ClInclude Include="Source\Imgui\ImGuizmo.h" />
     <ClInclude Include="Source\Imgui\imgui_impl_dx11.h" />
     <ClInclude Include="Source\Imgui\imgui_impl_sdl.h" />
