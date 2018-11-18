@@ -4,6 +4,7 @@
 #include <vector>
 
 #include <d3d11_1.h>
+#include <d3dcompiler.h>
 #include <atlbase.h>
 
 #include "sdl/SDL.h"
@@ -462,59 +463,53 @@ GPURenderTarget D3D11RHI::_CreateRenderTargetColor(const RenderTargetCreateInfo&
 //	return gpuRt.texture;
 //}
 
+const std::string shaderRelativeDir = "..\\..\\..\\..\\Source\\Shaders\\";
+
+void D3D11RHI::LoadVertexShader(const std::string& name, GPUShader& shader, const std::vector<D3D11_INPUT_ELEMENT_DESC>& vertexLayout) {
+
+	auto vsData = FileUtils::LoadFile(shaderRelativeDir + name + ".hlsl");
+	ID3DBlob* blob = nullptr;
+	assert(SUCCEEDED(D3DCompile(vsData.data(), vsData.size(), NULL, NULL, NULL, "main", "vs_4_0", 0, 0, &blob, NULL)));
+	assert(blob != NULL); // NB: Pass ID3D10Blob* pErrorBlob to D3DCompile() to get error showing in (const char*)pErrorBlob->GetBufferPointer(). Make sure to Release() the blob!
+	assert(SUCCEEDED(m_pD3dDevice->CreateVertexShader(blob->GetBufferPointer(), blob->GetBufferSize(), 0, shader.vertexShader.GetRef())));
+	assert(SUCCEEDED(m_pD3dDevice->CreateInputLayout(vertexLayout.data(), vertexLayout.size(), blob->GetBufferPointer(), blob->GetBufferSize(), shader.inputLayout.GetRef())));
+	blob->Release();
+}
+
 void D3D11RHI::LoadVertexShaders()
 {
+	const std::vector<D3D11_INPUT_ELEMENT_DESC> pos3norm3tex3Layout =
 	{
-		auto vsData = FileUtils::LoadFile("VS.cso");
-		assert(SUCCEEDED(m_pD3dDevice->CreateVertexShader(vsData.data(), vsData.size(), 0, _solidColorShader.vertexShader.GetRef())));
-		D3D11_INPUT_ELEMENT_DESC vertexLayout[] =
-		{
-			{ "POSITION",	0,	DXGI_FORMAT_R32G32B32_FLOAT,	0,	0,	D3D11_INPUT_PER_VERTEX_DATA,	0 },
-			{ "NORMAL",		0,	DXGI_FORMAT_R32G32B32_FLOAT,	1,	0,	D3D11_INPUT_PER_VERTEX_DATA,	0 },
-			{ "TEXCOORD",	0,	DXGI_FORMAT_R32G32B32_FLOAT,	2,	0,	D3D11_INPUT_PER_VERTEX_DATA,	0 }
-		};
-		assert(SUCCEEDED(m_pD3dDevice->CreateInputLayout(vertexLayout, ARRAYSIZE(vertexLayout), vsData.data(), vsData.size(), _solidColorShader.inputLayout.GetRef())));
-	}
+		{ "POSITION",	0,	DXGI_FORMAT_R32G32B32_FLOAT,	0,	0,	D3D11_INPUT_PER_VERTEX_DATA,	0 },
+		{ "NORMAL",		0,	DXGI_FORMAT_R32G32B32_FLOAT,	1,	0,	D3D11_INPUT_PER_VERTEX_DATA,	0 },
+		{ "TEXCOORD",	0,	DXGI_FORMAT_R32G32B32_FLOAT,	2,	0,	D3D11_INPUT_PER_VERTEX_DATA,	0 }
+	};
 
+	const std::vector<D3D11_INPUT_ELEMENT_DESC> pos2tex2Layout =
 	{
-		auto vsData = FileUtils::LoadFile("ResolveVS.cso");
-		assert(SUCCEEDED(m_pD3dDevice->CreateVertexShader(vsData.data(), vsData.size(), 0, _resolveShader.vertexShader.GetRef())));
-		D3D11_INPUT_ELEMENT_DESC vertexLayout[] =
-		{
-			{ "POSITION",	0,	DXGI_FORMAT_R32G32_FLOAT,	0,	0,	D3D11_INPUT_PER_VERTEX_DATA,	0 },
-			{ "TEXCOORD",	0,	DXGI_FORMAT_R32G32_FLOAT,	1,	0,	D3D11_INPUT_PER_VERTEX_DATA,	0 }
-		};
-		assert(SUCCEEDED(m_pD3dDevice->CreateInputLayout(vertexLayout, ARRAYSIZE(vertexLayout), vsData.data(), vsData.size(), _resolveShader.inputLayout.GetRef())));
-	}
+		{ "POSITION",	0,	DXGI_FORMAT_R32G32_FLOAT,	0,	0,	D3D11_INPUT_PER_VERTEX_DATA,	0 },
+		{ "TEXCOORD",	0,	DXGI_FORMAT_R32G32_FLOAT,	1,	0,	D3D11_INPUT_PER_VERTEX_DATA,	0 }
+	};
 
-	{
-		auto vsData = FileUtils::LoadFile("AmbientVS.cso");
-		assert(SUCCEEDED(m_pD3dDevice->CreateVertexShader(vsData.data(), vsData.size(), 0, _ambientShader.vertexShader.GetRef())));
-		D3D11_INPUT_ELEMENT_DESC vertexLayout[] =
-		{
-			{ "POSITION",	0,	DXGI_FORMAT_R32G32_FLOAT,	0,	0,	D3D11_INPUT_PER_VERTEX_DATA,	0 },
-			{ "TEXCOORD",	0,	DXGI_FORMAT_R32G32_FLOAT,	1,	0,	D3D11_INPUT_PER_VERTEX_DATA,	0 }
-		};
-		assert(SUCCEEDED(m_pD3dDevice->CreateInputLayout(vertexLayout, ARRAYSIZE(vertexLayout), vsData.data(), vsData.size(), _ambientShader.inputLayout.GetRef())));
-	}
+	LoadVertexShader("VS", _solidColorShader, pos3norm3tex3Layout);
+	LoadVertexShader("ResolveVS", _resolveShader, pos2tex2Layout);
+	LoadVertexShader("AmbientVS", _ambientShader, pos2tex2Layout);
+}
+
+void D3D11RHI::LoadPixelShader(const std::string& name, GPUShader& shader) {
+	auto psData = FileUtils::LoadFile(shaderRelativeDir + name + ".hlsl");
+	ID3DBlob* blob = nullptr;
+	assert(SUCCEEDED(D3DCompile(psData.data(), psData.size(), NULL, NULL, NULL, "main", "ps_4_0", 0, 0, &blob, NULL)));
+	assert(blob != NULL); // NB: Pass ID3D10Blob* pErrorBlob to D3DCompile() to get error showing in (const char*)pErrorBlob->GetBufferPointer(). Make sure to Release() the blob!
+	assert(SUCCEEDED(m_pD3dDevice->CreatePixelShader(blob->GetBufferPointer(), blob->GetBufferSize(), 0, shader.pixelShader.GetRef())));
+	blob->Release();
 }
 
 void D3D11RHI::LoadPixelShaders()
 {
-	{
-		auto psData = FileUtils::LoadFile("PS.cso");
-		assert(SUCCEEDED(m_pD3dDevice->CreatePixelShader(psData.data(), psData.size(), 0, _solidColorShader.pixelShader.GetRef())));
-	}
-
-	{
-		auto psData = FileUtils::LoadFile("ResolvePS.cso");
-		assert(SUCCEEDED(m_pD3dDevice->CreatePixelShader(psData.data(), psData.size(), 0, _resolveShader.pixelShader.GetRef())));
-	}
-
-	{
-		auto psData = FileUtils::LoadFile("AmbientPS.cso");
-		assert(SUCCEEDED(m_pD3dDevice->CreatePixelShader(psData.data(), psData.size(), 0, _ambientShader.pixelShader.GetRef())));
-	}
+	LoadPixelShader("PS", _solidColorShader);
+	LoadPixelShader("ResolvePS", _resolveShader);
+	LoadPixelShader("AmbientPS", _ambientShader);
 }
 
 void D3D11RHI::ClearBackBufferColor()

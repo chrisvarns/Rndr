@@ -85,6 +85,9 @@ public:
     ID3D11DeviceContext* GetDeviceContext() const { return m_pD3dContext.get(); }
 
 private:
+
+	void LoadVertexShader(const std::string& name, GPUShader& shader, const std::vector<D3D11_INPUT_ELEMENT_DESC>& vertexLayout);
+	void LoadPixelShader(const std::string& name, GPUShader& shader);
     void RecreateBackBufferRTAndView(uint32_t windowWidth, uint32_t windowHeight);
 	void RecreateOffscreenRenderTargets(int width, int height);
 	void CreateLightingResources();
