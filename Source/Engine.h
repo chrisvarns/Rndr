@@ -29,6 +29,19 @@ enum RenderMode {
 RenderMode& operator++(RenderMode& rm);
 RenderMode operator++(RenderMode& rm, int);
 
+struct Camera {
+	glm::mat4									viewMatrix;
+	glm::mat4									projectionMatrix;
+	glm::vec3									viewPos;
+	glm::vec3									viewDir;
+	glm::vec3									upDir;
+	glm::vec3									rightDir;
+	float										viewAngleH;
+	float										viewAngleV;
+
+	Camera();
+};
+
 class Engine
 {
 public:
@@ -54,17 +67,12 @@ public:
 
     Window          window;
 
-    D3D11RHI                   rhi;
+    D3D11RHI        rhi;
 
 	std::vector<SharedPtr<Mesh>>				m_Meshes;
     TextureMap                                  textureMap;
 
-	// Camera stuff
-	glm::mat4									m_ViewMatrix;
-	float										m_ViewAngleH;
-	float										m_ViewAngleV;
-	glm::vec3									m_ViewPos;
-	glm::mat4									m_ProjectionMatrix;
+	Camera camera;
 	
 	// Render Stuff
 	RenderMode									m_RenderMode;

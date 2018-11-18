@@ -8,5 +8,5 @@ namespace ImGui::Integration
 	extern float g_Controls_Camera_Sensitivity;
 
 	// Lighting
-	extern float g_Lighting_Ambient[3];
+	extern float g_Lighting_AmbientCol[3];
 }

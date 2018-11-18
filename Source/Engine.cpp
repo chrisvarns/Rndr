@@ -21,6 +21,7 @@
 #include "Imgui/imgui.h"
 #include "imgui/imgui_impl_sdl.h"
 #include "imgui/imgui_impl_dx11.h"
+#include "imgui/ImGuizmo.h"
 
 #include "D3D11/D3D11RHI.h"
 #include "FileUtils.h"
@@ -29,6 +30,17 @@
 using namespace std;
 
 Engine* g_Engine = nullptr;
+
+Camera::Camera()
+	: viewMatrix(1.f)
+	, projectionMatrix(1.f)
+	, viewPos(0.f)
+	, viewDir(0.f)
+	, upDir(0.f)
+	, rightDir(0.f)
+	, viewAngleH(0.f)
+	, viewAngleV(0.f)
+{}
 
 // Special behavior for ++Colors
 RenderMode& operator++(RenderMode& rm) {
@@ -41,11 +53,6 @@ Engine::Engine(int argc, char** argv)
 	: m_NumCmdLineArgs(argc)
 	, m_CmdLineArgs(argv)
     , window({1280, 720})
-	, m_ViewMatrix(1.f)
-	, m_ViewAngleV(0.f)
-	, m_ViewAngleH(0.f)
-	, m_ViewPos(0.f)
-	, m_ProjectionMatrix(1.f)
 	, m_RenderMode(RenderMode::Albedo)
 {
     g_Engine = this;
@@ -172,7 +179,7 @@ bool Engine::Execute()
 
 void Engine::UpdateProjectionMatrix()
 {
-	m_ProjectionMatrix = glm::perspective(45.f, (float)window.width / window.height, 0.01f, 100.f);
+	camera.projectionMatrix = glm::perspective(45.f, (float)window.width / window.height, 0.01f, 100.f);
 }
 
 void Engine::ResizeWindow(int width, int height)
@@ -225,8 +232,8 @@ bool Engine::HandleEvents()
 		case SDL_MOUSEMOTION:
 			if (!io.WantCaptureMouse && SDL_GetRelativeMouseMode())
 			{
-				m_ViewAngleH += event.motion.xrel * ImGui::Integration::g_Controls_Camera_Sensitivity;
-				m_ViewAngleV -= event.motion.yrel * ImGui::Integration::g_Controls_Camera_Sensitivity;
+				camera.viewAngleH += event.motion.xrel * ImGui::Integration::g_Controls_Camera_Sensitivity;
+				camera.viewAngleV -= event.motion.yrel * ImGui::Integration::g_Controls_Camera_Sensitivity;
 			}
 			break;
 		case SDL_KEYDOWN:
@@ -270,37 +277,37 @@ bool Engine::LoadContent()
 bool Engine::UpdateCamera(float deltaTime)
 {
 	// Wrap around/clamp the view angles
-	if (m_ViewAngleH > glm::two_pi<float>()) m_ViewAngleH -= glm::two_pi<float>();
-	else if (m_ViewAngleH < 0) m_ViewAngleH += glm::two_pi<float>();
-	m_ViewAngleV = glm::clamp(m_ViewAngleV, glm::radians(-85.f), glm::radians(85.f));
+	if (camera.viewAngleH > glm::two_pi<float>()) camera.viewAngleH -= glm::two_pi<float>();
+	else if (camera.viewAngleH < 0) camera.viewAngleH += glm::two_pi<float>();
+	camera.viewAngleV = glm::clamp(camera.viewAngleV, glm::radians(-85.f), glm::radians(85.f));
 
-	glm::vec3 viewDir(
-		glm::cos(m_ViewAngleV) * glm::sin(m_ViewAngleH),
-		glm::sin(m_ViewAngleV),
-		glm::cos(m_ViewAngleV) * glm::cos(m_ViewAngleH)
+	camera.viewDir = glm::vec3(
+		glm::cos(camera.viewAngleV) * glm::sin(camera.viewAngleH),
+		glm::sin(camera.viewAngleV),
+		glm::cos(camera.viewAngleV) * glm::cos(camera.viewAngleH)
 	);
 
-	glm::vec3 rightDir(
-		glm::sin(m_ViewAngleH + glm::half_pi<float>()),
+	camera.rightDir = glm::vec3(
+		glm::sin(camera.viewAngleH + glm::half_pi<float>()),
 		0,
-		glm::cos(m_ViewAngleH + glm::half_pi<float>())
+		glm::cos(camera.viewAngleH + glm::half_pi<float>())
 	);
 
-	glm::vec3 upDir = glm::cross(viewDir, rightDir);
+	camera.upDir = glm::cross(camera.viewDir, camera.rightDir);
 
 	// If the RMB is held, we can grab WASD and update the camera pos.
 	if (SDL_GetRelativeMouseMode())
 	{
 		const uint8_t* keyboardState = SDL_GetKeyboardState(NULL);
-		if (keyboardState[SDL_SCANCODE_W]) m_ViewPos += viewDir * ImGui::Integration::g_Controls_Camera_Speed;
-		if (keyboardState[SDL_SCANCODE_S]) m_ViewPos -= viewDir * ImGui::Integration::g_Controls_Camera_Speed;
-		if (keyboardState[SDL_SCANCODE_A]) m_ViewPos -= rightDir * ImGui::Integration::g_Controls_Camera_Speed;
-		if (keyboardState[SDL_SCANCODE_D]) m_ViewPos += rightDir * ImGui::Integration::g_Controls_Camera_Speed;
-		if (keyboardState[SDL_SCANCODE_E]) m_ViewPos += upDir * ImGui::Integration::g_Controls_Camera_Speed;
-		if (keyboardState[SDL_SCANCODE_Q]) m_ViewPos -= upDir * ImGui::Integration::g_Controls_Camera_Speed;
+		if (keyboardState[SDL_SCANCODE_W]) camera.viewPos += camera.viewDir * ImGui::Integration::g_Controls_Camera_Speed;
+		if (keyboardState[SDL_SCANCODE_S]) camera.viewPos -= camera.viewDir * ImGui::Integration::g_Controls_Camera_Speed;
+		if (keyboardState[SDL_SCANCODE_A]) camera.viewPos -= camera.rightDir * ImGui::Integration::g_Controls_Camera_Speed;
+		if (keyboardState[SDL_SCANCODE_D]) camera.viewPos += camera.rightDir * ImGui::Integration::g_Controls_Camera_Speed;
+		if (keyboardState[SDL_SCANCODE_E]) camera.viewPos += camera.upDir * ImGui::Integration::g_Controls_Camera_Speed;
+		if (keyboardState[SDL_SCANCODE_Q]) camera.viewPos -= camera.upDir * ImGui::Integration::g_Controls_Camera_Speed;
 	}
 
-	m_ViewMatrix = glm::lookAt(m_ViewPos, m_ViewPos + viewDir, upDir);
+	camera.viewMatrix = glm::lookAt(camera.viewPos, camera.viewPos + camera.viewDir, camera.upDir);
 	return true;
 }
 
@@ -309,10 +316,11 @@ bool Engine::Update(float deltaTime)
 	ImGui_ImplDX11_NewFrame();
 	ImGui_ImplSDL2_NewFrame(window.sdlWindow.get());
 	ImGui::NewFrame();
+	ImGuizmo::BeginFrame();
 
 	UpdateCamera(deltaTime);
 
-    auto viewProjMatrix = m_ProjectionMatrix * m_ViewMatrix;
+    auto viewProjMatrix = camera.projectionMatrix * camera.viewMatrix;
 
 	for (auto& meshItr : m_Meshes)
 	{
@@ -337,7 +345,7 @@ bool Engine::Render()
 
 	rhi.BeginLightingPass();
 	using namespace ImGui::Integration;
-	glm::vec3 ambient{ g_Lighting_Ambient[0], g_Lighting_Ambient[1], g_Lighting_Ambient[2] };
+	glm::vec3 ambient{ g_Lighting_AmbientCol[0], g_Lighting_AmbientCol[1], g_Lighting_AmbientCol[2] };
 	rhi.DrawAmbient(ambient);
 
 	ImGui::Integration::RenderMenus();
