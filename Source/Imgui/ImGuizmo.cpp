@@ -1095,6 +1095,48 @@ namespace ImGuizmo
       }
    }
 
+   void DrawDirectionArrow() {
+	   int type = MOVE_SCREEN;
+	   ImDrawList* drawList = gContext.mDrawList;
+	   if (!drawList)
+		   return;
+
+	   // colors
+	   ImU32 colors[7];
+	   ComputeColors(colors, type, TRANSLATE);
+
+	   const ImVec2 origin = worldToPos(gContext.mModel.v.position, gContext.mViewProjection);
+
+	   // draw
+	   bool belowAxisLimit = false;
+	   bool belowPlaneLimit = false;
+	   for (unsigned int i = 0; i < 1; ++i)
+	   {
+		   vec_t dirPlaneX, dirPlaneY, dirAxis;
+		   ComputeTripodAxisAndVisibility(i, dirAxis, dirPlaneX, dirPlaneY, belowAxisLimit, belowPlaneLimit);
+		   dirAxis = dirAxis.Abs();
+		   // draw axis
+		   if (belowAxisLimit)
+		   {
+			   ImVec2 baseSSpace = worldToPos(dirAxis * 0.1f * gContext.mScreenFactor, gContext.mMVP);
+			   ImVec2 worldDirSSpace = worldToPos(dirAxis * gContext.mScreenFactor, gContext.mMVP);
+
+			   drawList->AddLine(baseSSpace, worldDirSSpace, colors[i + 1], 3.f);
+
+			   // Arrow head begin
+			   ImVec2 dir(origin - worldDirSSpace);
+
+			   float d = sqrtf(ImLengthSqr(dir));
+			   dir /= d; // Normalize
+			   dir *= 6.0f;
+
+			   ImVec2 ortogonalDir(dir.y, -dir.x); // Perpendicular vector
+			   ImVec2 a(worldDirSSpace + dir);
+			   drawList->AddTriangleFilled(worldDirSSpace - dir, a + ortogonalDir, a - ortogonalDir, colors[i + 1]);
+			   // Arrow head end
+		   }
+	   }
+   }
 
    static void DrawTranslationGizmo(int type)
    {
