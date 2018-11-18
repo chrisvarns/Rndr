@@ -2,7 +2,7 @@
 
 #include "Engine.h"
 #include "FileUtils.h"
-#include "D3D11/D3D11RHI.h"
+#include "D3D11RHI.h"
 
 ID3D11Texture2D* TextureMap::GetTexture2DFromPath(const std::string& path)
 {

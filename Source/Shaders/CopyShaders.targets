@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <ItemGroup>
+    <!-- Visual Studio may warn you that $(TargetedSDKConfiguration) is not defined. Actually it is. -->
+    <ShaderFiles Include="$(SolutionDir)Shaders\**\*" />
+  </ItemGroup>
+  
+  <Target Name="CopyShaders" AfterTargets="ClCompile">
+    <Message Importance="high" Text="Copying shaders..." />
+    <MakeDir Directories="$(OutDir)Shaders" />
+    <Copy
+      SourceFiles="@(ShaderFiles)"
+      DestinationFolder="$(OutDir)Shaders"
+      SkipUnchangedFiles="true"/>
+  </Target>
+  
+</Project>

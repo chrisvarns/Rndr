@@ -10,7 +10,7 @@
 
 #include "Engine.h"
 #include "FileUtils.h"
-#include "D3D11/D3D11RHI.h"
+#include "D3D11RHI.h"
 
 SharedDeletePtr<Mesh> Mesh::LoadMesh(const aiMesh& aimesh, const aiScene& aiscene, D3D11RHI& rhi)
 {

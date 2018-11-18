@@ -14,18 +14,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Source\D3D11\Shaders\PS.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Source\D3D11\Shaders\VS.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Source\D3D11\Shaders\ResolvePS.hlsl" />
-    <FxCompile Include="Source\D3D11\Shaders\ResolveVS.hlsl" />
-    <FxCompile Include="Source\D3D11\Shaders\AmbientVS.hlsl" />
-    <FxCompile Include="Source\D3D11\Shaders\AmbientPS.hlsl" />
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="Source\Engine.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -53,9 +41,6 @@
     <ClCompile Include="Source\TextureMap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\D3D11\D3D11RHI.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Imgui\imgui_impl_dx11.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -66,6 +51,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Source\Imgui\ImGuizmo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\D3D11RHI.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -103,9 +91,6 @@
     <ClInclude Include="Source\TextureMap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\D3D11\D3D11RHI.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Source\CPUTexture.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -130,8 +115,19 @@
     <ClInclude Include="Source\Imgui\ImGuizmo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Source\D3D11RHI.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="Source\UniquePtr.natvis" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Source\Shaders\AmbientPS.hlsl" />
+    <None Include="Source\Shaders\AmbientVS.hlsl" />
+    <None Include="Source\Shaders\PS.hlsl" />
+    <None Include="Source\Shaders\ResolvePS.hlsl" />
+    <None Include="Source\Shaders\ResolveVS.hlsl" />
+    <None Include="Source\Shaders\VS.hlsl" />
   </ItemGroup>
 </Project>

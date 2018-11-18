@@ -23,7 +23,7 @@
 #include "imgui/imgui_impl_dx11.h"
 #include "imgui/ImGuizmo.h"
 
-#include "D3D11/D3D11RHI.h"
+#include "D3D11RHI.h"
 #include "FileUtils.h"
 #include "Mesh.h"
 

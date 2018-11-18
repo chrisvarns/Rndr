@@ -13,7 +13,7 @@
 #include "TextureMap.h"
 #include "UniquePtr.h"
 #include "Window.h"
-#include "D3D11/D3D11RHI.h"
+#include "D3D11RHI.h"
 
 struct GBuffers {
 	ID3D11Texture2D* color;
