@@ -19,8 +19,10 @@
 
 #include "Imgui/ImguiMenus.h"
 #include "Imgui/imgui.h"
+#include "imgui/imgui_impl_sdl.h"
+#include "imgui/imgui_impl_dx11.h"
+
 #include "D3D11/D3D11RHI.h"
-#include "D3D11/D3D11ImguiIntegration.h"
 #include "FileUtils.h"
 #include "Mesh.h"
 
@@ -51,7 +53,9 @@ Engine::Engine(int argc, char** argv)
 
 Engine::~Engine()
 {
-	imgui.Shutdown();
+	ImGui_ImplDX11_Shutdown();
+	ImGui_ImplSDL2_Shutdown();
+	ImGui::DestroyContext();
 }
 
 void Engine::ParseArg(const string& key, const string& value)
@@ -138,7 +142,10 @@ bool Engine::Init()
 
     rhi.InitRHI(window);
 
-	imgui.Init(window.sdlWindow.get(), &rhi);
+	ImGui::CreateContext();
+	ImGui_ImplSDL2_InitForDX11(window.sdlWindow.get());
+	ImGui_ImplDX11_Init(rhi.GetDevice(), rhi.GetDeviceContext());
+	ImGui::StyleColorsDark();
 
 	// TODO Feels a bit out of place here.
     UpdateProjectionMatrix();
@@ -197,7 +204,7 @@ bool Engine::HandleEvents()
 	SDL_Event event;
 	while (SDL_PollEvent(&event))
 	{
-		imgui.ProcessEvent(&event);
+		ImGui_ImplSDL2_ProcessEvent(&event);
 		switch (event.type)
 		{
 		case SDL_QUIT:
@@ -299,7 +306,9 @@ bool Engine::UpdateCamera(float deltaTime)
 
 bool Engine::Update(float deltaTime)
 {
-	imgui.NewFrame(window.sdlWindow.get());
+	ImGui_ImplDX11_NewFrame();
+	ImGui_ImplSDL2_NewFrame(window.sdlWindow.get());
+	ImGui::NewFrame();
 
 	UpdateCamera(deltaTime);
 
@@ -333,6 +342,7 @@ bool Engine::Render()
 
 	ImGui::Integration::RenderMenus();
 	ImGui::Render();
+	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
     rhi.Present();
 

@@ -7,10 +7,13 @@
 #include <atlbase.h>
 
 #include "sdl/SDL.h"
+
 #include "UniquePtr.h"
 #include "Engine.h"
 #include "Mesh.h"
 #include "FileUtils.h"
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_dx11.h"
 
 bool D3D11RHI::InitRHI(const Window& window)
 {
@@ -152,6 +155,8 @@ bool D3D11RHI::InitRHI(const Window& window)
 	LoadPixelShaders();
 	CreateLightingResources();
 
+	ImGui_ImplDX11_CreateDeviceObjects();
+
 	return true;
 }
 
@@ -216,6 +221,10 @@ void D3D11RHI::HandleWindowResize(uint32_t windowWidth, uint32_t windowHeight)
 
 	RecreateBackBufferRTAndView(windowWidth, windowHeight);
 	RecreateOffscreenRenderTargets(windowWidth, windowHeight);
+
+	//ImGui_ImplDX11_InvalidateDeviceObjects();
+	//ImGui_ImplDX11_CreateDeviceObjects();
+
 }
 
 bool D3D11RHI::UpdateConstantBuffer(ID3D11Buffer* cbHandle, void* data, int numBytes)

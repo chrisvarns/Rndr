@@ -90,7 +90,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>GLM_FORCE_LEFT_HANDED;GLM_FORCE_DEPTH_ZERO_TO_ONE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)\3rdparty\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)3rdparty\include;$(ProjectDir)Source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MinimalRebuild>false</MinimalRebuild>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
@@ -117,14 +117,6 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
     <FxCompile Include="Source\D3D11\Shaders\AmbientVS.hlsl">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
-    </FxCompile>
-    <FxCompile Include="Source\D3D11\Shaders\ImGuiPS.hlsl">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-    </FxCompile>
-    <FxCompile Include="Source\D3D11\Shaders\ImGuiVS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
@@ -158,10 +150,12 @@
     <ClCompile Include="Source\Engine.cpp" />
     <ClCompile Include="Source\Imgui\imgui.cpp" />
     <ClCompile Include="Source\D3D11\D3D11RHI.cpp" />
-    <ClCompile Include="Source\D3D11\D3D11ImguiIntegration.cpp" />
     <ClCompile Include="Source\Imgui\ImguiMenus.cpp" />
     <ClCompile Include="Source\Imgui\imgui_demo.cpp" />
     <ClCompile Include="Source\Imgui\imgui_draw.cpp" />
+    <ClCompile Include="Source\Imgui\imgui_impl_dx11.cpp" />
+    <ClCompile Include="Source\Imgui\imgui_impl_sdl.cpp" />
+    <ClCompile Include="Source\Imgui\imgui_widgets.cpp" />
     <ClCompile Include="Source\main.cpp" />
     <ClCompile Include="Source\Mesh.cpp" />
     <ClCompile Include="Source\FileUtils.cpp" />
@@ -174,14 +168,15 @@
     <ClInclude Include="Source\Imgui\imconfig.h" />
     <ClInclude Include="Source\Imgui\imgui.h" />
     <ClInclude Include="Source\D3D11\D3D11RHI.h" />
-    <ClInclude Include="Source\D3D11\D3D11ImguiIntegration.h" />
     <ClInclude Include="Source\Imgui\ImguiMenus.h" />
+    <ClInclude Include="Source\Imgui\imgui_impl_dx11.h" />
+    <ClInclude Include="Source\Imgui\imgui_impl_sdl.h" />
     <ClInclude Include="Source\Imgui\imgui_internal.h" />
+    <ClInclude Include="Source\Imgui\imstb_rectpack.h" />
+    <ClInclude Include="Source\Imgui\imstb_textedit.h" />
+    <ClInclude Include="Source\Imgui\imstb_truetype.h" />
     <ClInclude Include="Source\Mesh.h" />
     <ClInclude Include="Source\SharedPtr.h" />
-    <ClInclude Include="Source\Imgui\stb_rect_pack.h" />
-    <ClInclude Include="Source\Imgui\stb_textedit.h" />
-    <ClInclude Include="Source\Imgui\stb_truetype.h" />
     <ClInclude Include="Source\TextureMap.h" />
     <ClInclude Include="Source\UniquePtr.h" />
     <ClInclude Include="Source\FileUtils.h" />

@@ -14,7 +14,6 @@
 #include "UniquePtr.h"
 #include "Window.h"
 #include "D3D11/D3D11RHI.h"
-#include "D3D11/D3D11ImguiIntegration.h"
 
 struct GBuffers {
 	ID3D11Texture2D* color;
@@ -56,7 +55,6 @@ public:
     Window          window;
 
     D3D11RHI                   rhi;
-    D3D11ImGuiIntegration      imgui;
 
 	std::vector<SharedPtr<Mesh>>				m_Meshes;
     TextureMap                                  textureMap;

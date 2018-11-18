@@ -14,8 +14,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Source\D3D11\Shaders\ImGuiPS.hlsl" />
-    <FxCompile Include="Source\D3D11\Shaders\ImGuiVS.hlsl" />
     <FxCompile Include="Source\D3D11\Shaders\PS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
@@ -55,10 +53,16 @@
     <ClCompile Include="Source\TextureMap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\D3D11\D3D11ImguiIntegration.cpp">
+    <ClCompile Include="Source\D3D11\D3D11RHI.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\D3D11\D3D11RHI.cpp">
+    <ClCompile Include="Source\Imgui\imgui_impl_dx11.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Imgui\imgui_impl_sdl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Imgui\imgui_widgets.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -90,22 +94,10 @@
     <ClInclude Include="Source\Window.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Imgui\stb_rect_pack.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Imgui\stb_textedit.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Imgui\stb_truetype.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Source\FileUtils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\TextureMap.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\D3D11\D3D11ImguiIntegration.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\D3D11\D3D11RHI.h">
@@ -115,6 +107,21 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\GPUMesh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Imgui\imgui_impl_dx11.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Imgui\imgui_impl_sdl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Imgui\imstb_textedit.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Imgui\imstb_rectpack.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Imgui\imstb_truetype.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
