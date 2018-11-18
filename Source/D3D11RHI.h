@@ -122,6 +122,8 @@ private:
 
 	UniqueReleasePtr<ID3D11BlendState>			_lightingBlendState;
 
+	UniqueReleasePtr<ID3D11DepthStencilState>	_depthStateTestDisabledWriteDisabled;
+
 	GPUMesh										_fullscreenQuadMesh;
 
     /* The RHI ensures these objects get cleaned up upon destruction, or upon a call to Release() */

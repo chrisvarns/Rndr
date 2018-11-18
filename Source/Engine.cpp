@@ -347,6 +347,8 @@ bool Engine::Render()
 	using namespace ImGui::Integration;
 	glm::vec3 ambient{ g_Lighting_AmbientCol[0], g_Lighting_AmbientCol[1], g_Lighting_AmbientCol[2] };
 	rhi.DrawAmbient(ambient);
+	rhi.DrawAmbient(ambient);
+	rhi.DrawAmbient(ambient);
 
 	ImGui::Integration::RenderMenus();
 	ImGui::Render();

@@ -123,8 +123,6 @@ bool D3D11RHI::InitRHI(const Window& window)
 		SDL_Log("CreateDepthStencilState failed.");
 		return false;
 	}
-
-	m_pD3dContext->OMSetDepthStencilState(m_pDepthStencilState.get(), 0);
 #pragma endregion
 
 #pragma region RasterState
@@ -567,15 +565,38 @@ void D3D11RHI::RecreateOffscreenRenderTargets(int width, int height)
 void D3D11RHI::CreateLightingResources() {
 	_ambientCb = CreateConstantBuffer(sizeof(AmbientConstantBufferLayout));
 
+	// Disable depth test and write
+	D3D11_DEPTH_STENCIL_DESC depthStencilStateDesc;
+	ZeroMemory(&depthStencilStateDesc, sizeof(depthStencilStateDesc));
+	depthStencilStateDesc.DepthEnable = false;
+	depthStencilStateDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+	depthStencilStateDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+	depthStencilStateDesc.StencilEnable = false;
+	depthStencilStateDesc.StencilReadMask = D3D11_DEFAULT_STENCIL_READ_MASK;
+	depthStencilStateDesc.StencilWriteMask = D3D11_DEFAULT_STENCIL_WRITE_MASK;
+	depthStencilStateDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+	depthStencilStateDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+	depthStencilStateDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
+	depthStencilStateDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
+	depthStencilStateDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+	depthStencilStateDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+	depthStencilStateDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+	depthStencilStateDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+	assert(SUCCEEDED(m_pD3dDevice->CreateDepthStencilState(&depthStencilStateDesc, _depthStateTestDisabledWriteDisabled.GetRef())));
+
 	// Lighting additive blending
-	/*
 	D3D11_BLEND_DESC blendDesc;
 	blendDesc.AlphaToCoverageEnable = false;
 	blendDesc.IndependentBlendEnable = false;
 	blendDesc.RenderTarget[0].BlendEnable = true;
+	blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
+	blendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
 	blendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+	blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+	blendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ONE;
+	blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 	assert(SUCCEEDED(m_pD3dDevice->CreateBlendState(&blendDesc, _lightingBlendState.GetRef())));
-	*/
 }
 
 void D3D11RHI::BeginGeometryPass() {
@@ -590,7 +611,8 @@ void D3D11RHI::BeginGeometryPass() {
 		_offscreenNormalRT.rtv.get()
 	};
 	m_pD3dContext->OMSetRenderTargets(offscreenRTs.size(), offscreenRTs.data(), m_pDepthStencilRTView.get());
-	//m_pD3dContext->OMSetBlendState(nullptr, nullptr, 0xffffffff);
+	m_pD3dContext->OMSetBlendState(nullptr, nullptr, 0xffffffff);
+	m_pD3dContext->OMSetDepthStencilState(m_pDepthStencilState.get(), 0);
 
 	m_pD3dContext->IASetInputLayout(_solidColorShader.inputLayout.get());
 	m_pD3dContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -621,13 +643,13 @@ void D3D11RHI::BeginLightingPass()
 {
 	ClearBackBufferColor();
 	m_pD3dContext->OMSetRenderTargets(1, m_pBackBufferRTView.GetRef(), nullptr);
+	m_pD3dContext->OMSetBlendState(_lightingBlendState.get(), nullptr, 0xffffffff);
+	m_pD3dContext->OMSetDepthStencilState(_depthStateTestDisabledWriteDisabled.get(), 0);
 
 	m_pD3dContext->PSSetSamplers(0, 1, _gbufferSampler.GetRef());
-
 	std::vector<ID3D11ShaderResourceView*> srvs { _offscreenColorRT.srv.get(), _offscreenNormalRT.srv.get() };
 	m_pD3dContext->PSSetShaderResources(0, srvs.size(), srvs.data());
 
-	//m_pD3dContext->OMSetBlendState(_lightingBlendState.get(), );
 }
 
 void D3D11RHI::DrawAmbient(glm::vec3 color) {
