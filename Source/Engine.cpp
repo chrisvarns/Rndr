@@ -345,10 +345,10 @@ bool Engine::Render()
 
 	rhi.BeginLightingPass();
 	using namespace ImGui::Integration;
-	glm::vec3 ambient{ g_Lighting_AmbientCol[0], g_Lighting_AmbientCol[1], g_Lighting_AmbientCol[2] };
-	rhi.DrawAmbient(ambient);
-	rhi.DrawAmbient(ambient);
-	rhi.DrawAmbient(ambient);
+	//glm::vec3 ambient{ g_Lighting_AmbientCol[0], g_Lighting_AmbientCol[1], g_Lighting_AmbientCol[2] };
+	rhi.DrawAmbient(g_Lighting_AmbientCol);
+
+	rhi.DrawDirectionalLight(g_Lighting_DirectionalCol, g_Lighting_DirectionalRot);
 
 	ImGui::Integration::RenderMenus();
 	ImGui::Render();

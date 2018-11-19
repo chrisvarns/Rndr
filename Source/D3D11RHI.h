@@ -34,7 +34,13 @@ struct GeometryConstantBufferLayout
 
 struct AmbientConstantBufferLayout
 {
-	glm::vec4 mvpMatrix;
+	glm::vec4 color;
+};
+
+struct DirectionalConstantBufferLayout
+{
+	glm::vec4 color;
+	glm::vec4 direction;
 };
 
 struct GPUShader
@@ -77,7 +83,7 @@ public:
 	void DrawMesh(const Mesh& mesh);
 	void BeginLightingPass();
 	void DrawAmbient(glm::vec3 color);
-	void DrawDirectionalLight();
+	void DrawDirectionalLight(glm::vec3 color, glm::vec3 angles);
 	void Present();
 
     // Implementation
@@ -110,6 +116,7 @@ private:
 	GPUShader									_solidColorShader;
 	GPUShader									_resolveShader;
 	GPUShader									_ambientShader;
+	GPUShader									_directionalShader;
 	
 	ID3D11Texture2D*							m_DebugTexture2D;
 
@@ -117,6 +124,7 @@ private:
 	GPURenderTarget								_offscreenNormalRT;
 
 	ID3D11Buffer*								_ambientCb;
+	ID3D11Buffer*								_directionalCb;
 
 	UniqueReleasePtr<ID3D11SamplerState>		_gbufferSampler;
 

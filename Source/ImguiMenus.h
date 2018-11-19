@@ -1,4 +1,6 @@
 #pragma once
+#include "glm/glm.hpp"
+
 namespace ImGui::Integration
 {
 	void RenderMenus();
@@ -8,5 +10,7 @@ namespace ImGui::Integration
 	extern float g_Controls_Camera_Sensitivity;
 
 	// Lighting
-	extern float g_Lighting_AmbientCol[3];
+	extern glm::vec3 g_Lighting_AmbientCol;
+	extern glm::vec3 g_Lighting_DirectionalCol;
+	extern glm::vec3 g_Lighting_DirectionalRot;
 }

@@ -9,6 +9,8 @@
 
 #include "sdl/SDL.h"
 
+#include "glm/gtx/rotate_vector.hpp"
+
 #include "UniquePtr.h"
 #include "Engine.h"
 #include "Mesh.h"
@@ -492,6 +494,7 @@ void D3D11RHI::LoadVertexShaders()
 	LoadVertexShader("VS", _solidColorShader, pos3norm3tex3Layout);
 	LoadVertexShader("ResolveVS", _resolveShader, pos2tex2Layout);
 	LoadVertexShader("AmbientVS", _ambientShader, pos2tex2Layout);
+	LoadVertexShader("DirectionalVS", _directionalShader, pos2tex2Layout);
 }
 
 void D3D11RHI::LoadPixelShader(const std::string& name, GPUShader& shader) {
@@ -508,6 +511,7 @@ void D3D11RHI::LoadPixelShaders()
 	LoadPixelShader("PS", _solidColorShader);
 	LoadPixelShader("ResolvePS", _resolveShader);
 	LoadPixelShader("AmbientPS", _ambientShader);
+	LoadPixelShader("DirectionalPS", _directionalShader);
 }
 
 void D3D11RHI::ClearBackBufferColor()
@@ -564,6 +568,8 @@ void D3D11RHI::RecreateOffscreenRenderTargets(int width, int height)
 
 void D3D11RHI::CreateLightingResources() {
 	_ambientCb = CreateConstantBuffer(sizeof(AmbientConstantBufferLayout));
+	_directionalCb = CreateConstantBuffer(sizeof(DirectionalConstantBufferLayout));
+
 
 	// Disable depth test and write
 	D3D11_DEPTH_STENCIL_DESC depthStencilStateDesc;
@@ -672,18 +678,35 @@ void D3D11RHI::DrawAmbient(glm::vec3 color) {
 	m_pD3dContext->DrawIndexed(6, 0, 0);
 }
 
-void D3D11RHI::DrawDirectionalLight() {
+void D3D11RHI::DrawDirectionalLight(glm::vec3 color, glm::vec3 angles) {
+
+	auto lightDir = glm::vec3(1.0f, 0.0f, 0.0f);
+
+	const auto xDir = glm::vec3(1.0f, 0.0f, 0.0f);
+	const auto yDir = glm::vec3(0.0f, 1.0f, 0.0f);
+	const auto zDir = glm::vec3(0.0f, 0.0f, 1.0f);
+	glm::mat4 xRotMat = glm::rotate(glm::radians(angles.x), xDir);
+	glm::mat4 yRotMat = glm::rotate(glm::radians(angles.y), yDir);
+	glm::mat4 zRotMat = glm::rotate(glm::radians(angles.z), zDir);
+	glm::mat4 rotMat = xRotMat * yRotMat * zRotMat;
+
+	DirectionalConstantBufferLayout data;
+	data.color = glm::vec4(color, 1.0f);
+	data.direction = rotMat * glm::vec4(lightDir, 1.0f);
+	UpdateConstantBuffer(_directionalCb, &data, sizeof(data));
+	m_pD3dContext->PSSetConstantBuffers(0, 1, &_directionalCb);
+
 	unsigned int stride = sizeof(glm::vec2);
 	unsigned int offset = 0;
 	m_pD3dContext->IASetVertexBuffers(0, 1, &_fullscreenQuadMesh.positionBuffer, &stride, &offset);
 	m_pD3dContext->IASetVertexBuffers(1, 1, &_fullscreenQuadMesh.uvBuffer, &stride, &offset);
 	m_pD3dContext->IASetIndexBuffer(_fullscreenQuadMesh.indexBuffer, DXGI_FORMAT_R16_UINT, 0);
 
-	m_pD3dContext->IASetInputLayout(_resolveShader.inputLayout.get());
+	m_pD3dContext->IASetInputLayout(_directionalShader.inputLayout.get());
 	m_pD3dContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	m_pD3dContext->VSSetShader(_resolveShader.vertexShader.get(), 0, 0);
-	m_pD3dContext->PSSetShader(_resolveShader.pixelShader.get(), 0, 0);
+	m_pD3dContext->VSSetShader(_directionalShader.vertexShader.get(), 0, 0);
+	m_pD3dContext->PSSetShader(_directionalShader.pixelShader.get(), 0, 0);
 
 	m_pD3dContext->DrawIndexed(6, 0, 0);
 }

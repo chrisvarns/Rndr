@@ -130,4 +130,8 @@
     <None Include="Source\Shaders\ResolveVS.hlsl" />
     <None Include="Source\Shaders\VS.hlsl" />
   </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Source\Shaders\DirectionalPS.hlsl" />
+    <FxCompile Include="Source\Shaders\DirectionalVS.hlsl" />
+  </ItemGroup>
 </Project>

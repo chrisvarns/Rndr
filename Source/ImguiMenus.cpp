@@ -26,8 +26,8 @@ void RenderCameraMenu(bool* pOpen)
 	ImGui::End();
 }
 
-float g_Lighting_AmbientCol[3] = { 0.2f, 0.2f, 0.2f };
-float g_Lighting_DirectionalCol[3] = { 0.8f, 0.8f, 0.8f };
+glm::vec3 g_Lighting_AmbientCol = glm::vec3(0.2f);
+glm::vec3 g_Lighting_DirectionalCol = glm::vec3(0.8f);
 glm::vec3 g_Lighting_DirectionalRot = glm::vec3(0.f);
 
 bool showLightRotationWidget = false;
@@ -39,13 +39,17 @@ void RenderLightingWindow(bool* pOpen) {
 	if (ImGui::Begin("Lighting", pOpen))
 	{
 		ImGui::Text("Ambient");
-		ImGui::ColorEdit3("Ambient Color", g_Lighting_AmbientCol);
+		glm::vec3 test;
+		ImGui::ColorEdit3("Ambient Color", (float*)&g_Lighting_AmbientCol);
 
 		ImGui::Separator();
 
 		ImGui::Text("Directional Light");
-		ImGui::ColorEdit3("Directional Color", g_Lighting_DirectionalCol);
-		if (ImGui::Button("Directional Dir")) {
+		ImGui::ColorEdit3("Directional Color", (float*)&g_Lighting_DirectionalCol);
+		ImGui::InputFloat3("Directional Dir", (float*)&g_Lighting_DirectionalRot, 2);
+		ImGui::SameLine();
+		ImVec4 buttonCol = { 1.0f, 0.0f, 0.0f, 1.0f };
+		if (ImGui::ColorButton("DirectionalDirButton", buttonCol)) {
 			showLightRotationWidget ^= true;
 		}
 		if (showLightRotationWidget) {

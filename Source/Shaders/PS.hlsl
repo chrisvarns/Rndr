@@ -19,7 +19,8 @@ PSOut main(PSIn input)
 	PSOut output;
 
 	output.Color = diffuseTex.Sample(diffuseSampler, input.UV.xy);
-	output.Normal = float4(normalize(input.Normal.xyz) * 0.5 + 0.5, 1);
+	//output.Normal = float4(normalize(input.Normal.xyz) * 0.5 + 0.5, 1);
+	output.Normal = float4(normalize(input.Normal.xyz), 1);
 	return output;
 }
 

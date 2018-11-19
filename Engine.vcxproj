@@ -202,6 +202,14 @@
     <ClInclude Include="Source\FileUtils.h" />
     <ClInclude Include="Source\Window.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Source\Shaders\DirectionalPS.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Source\Shaders\DirectionalVS.hlsl">
+      <FileType>Document</FileType>
+    </None>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
