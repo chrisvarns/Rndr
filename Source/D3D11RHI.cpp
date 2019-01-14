@@ -500,10 +500,16 @@ void D3D11RHI::LoadVertexShaders()
 void D3D11RHI::LoadPixelShader(const std::string& name, GPUShader& shader) {
 	auto psData = FileUtils::LoadFile(shaderRelativeDir + name + ".hlsl");
 	ID3DBlob* blob = nullptr;
-	assert(SUCCEEDED(D3DCompile(psData.data(), psData.size(), NULL, NULL, NULL, "main", "ps_4_0", 0, 0, &blob, NULL)));
+	ID3DBlob* errorBlob = nullptr;
+	if (FAILED(D3DCompile(psData.data(), psData.size(), NULL, NULL, NULL, "main", "ps_4_0", 0, 0, &blob, &errorBlob)))
+	{
+		SDL_Log((const char *)errorBlob->GetBufferPointer());
+		assert(false);
+	}
 	assert(blob != NULL); // NB: Pass ID3D10Blob* pErrorBlob to D3DCompile() to get error showing in (const char*)pErrorBlob->GetBufferPointer(). Make sure to Release() the blob!
 	assert(SUCCEEDED(m_pD3dDevice->CreatePixelShader(blob->GetBufferPointer(), blob->GetBufferSize(), 0, shader.pixelShader.GetRef())));
 	blob->Release();
+	if(errorBlob) errorBlob->Release();
 }
 
 void D3D11RHI::LoadPixelShaders()
