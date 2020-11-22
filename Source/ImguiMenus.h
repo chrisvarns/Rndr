@@ -1,16 +1,19 @@
 #pragma once
 #include "glm/glm.hpp"
 
+namespace Globals
+{
+	// Controls
+	extern float CameraSpeed;
+	extern float CameraSensitivity;
+
+	// Lighting
+	extern glm::vec3 LightingAmbientColor;
+	extern glm::vec3 LightingDirectionalColor;
+	extern glm::vec3 LightingDirectionalRot;
+}
+
 namespace ImGui::Integration
 {
 	void RenderMenus();
-
-	// Controls
-	extern float g_Controls_Camera_Speed;
-	extern float g_Controls_Camera_Sensitivity;
-
-	// Lighting
-	extern glm::vec3 g_Lighting_AmbientCol;
-	extern glm::vec3 g_Lighting_DirectionalCol;
-	extern glm::vec3 g_Lighting_DirectionalRot;
 }

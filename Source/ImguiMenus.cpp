@@ -8,11 +8,17 @@
 #include "imgui/ImGuizmo.h"
 #include "Engine.h"
 
+namespace Globals
+{
+	float CameraSpeed = 0.01f;
+	float CameraSensitivity = 0.001f;
+	glm::vec3 LightingAmbientColor = glm::vec3(0.2f);
+	glm::vec3 LightingDirectionalColor = glm::vec3(0.8f);
+	glm::vec3 LightingDirectionalRot = glm::vec3(0.f);
+}
+
 namespace ImGui::Integration
 {
-
-float g_Controls_Camera_Speed = 0.01f;
-float g_Controls_Camera_Sensitivity = 0.001f;
 
 void RenderCameraMenu(bool* pOpen)
 {
@@ -20,15 +26,11 @@ void RenderCameraMenu(bool* pOpen)
 
 	if (ImGui::Begin("Camera", pOpen))
 	{
-		ImGui::SliderFloat("Speed", &g_Controls_Camera_Speed, 0.0f, 0.05f);
-		ImGui::SliderFloat("Sensitivity", &g_Controls_Camera_Sensitivity, 0.0f, 0.01f);
+		ImGui::SliderFloat("Speed", &Globals::CameraSpeed, 0.0f, 0.05f);
+		ImGui::SliderFloat("Sensitivity", &Globals::CameraSensitivity, 0.0f, 0.01f);
 	}
 	ImGui::End();
 }
-
-glm::vec3 g_Lighting_AmbientCol = glm::vec3(0.2f);
-glm::vec3 g_Lighting_DirectionalCol = glm::vec3(0.8f);
-glm::vec3 g_Lighting_DirectionalRot = glm::vec3(0.f);
 
 bool showLightRotationWidget = false;
 
@@ -40,13 +42,13 @@ void RenderLightingWindow(bool* pOpen) {
 	{
 		ImGui::Text("Ambient");
 		glm::vec3 test;
-		ImGui::ColorEdit3("Ambient Color", (float*)&g_Lighting_AmbientCol);
+		ImGui::ColorEdit3("Ambient Color", (float*)&Globals::LightingAmbientColor);
 
 		ImGui::Separator();
 
 		ImGui::Text("Directional Light");
-		ImGui::ColorEdit3("Directional Color", (float*)&g_Lighting_DirectionalCol);
-		ImGui::SliderFloat3("Directional Dir", (float*)&g_Lighting_DirectionalRot, 0.f, 360.f);
+		ImGui::ColorEdit3("Directional Color", (float*)&Globals::LightingDirectionalColor);
+		ImGui::SliderFloat3("Directional Dir", (float*)&Globals::LightingDirectionalRot, -180.f, 180.f);
 		ImGui::SameLine();
 		ImVec4 buttonCol = { 1.0f, 0.0f, 0.0f, 1.0f };
 		if (ImGui::ColorButton("DirectionalDirButton", buttonCol)) {
@@ -61,9 +63,9 @@ void RenderLightingWindow(bool* pOpen) {
 			float mat[16];
 			auto translate = g_Engine->camera.viewPos + (g_Engine->camera.viewDir * 0.5f) + (g_Engine->camera.rightDir * 0.3f);
 			glm::vec3 scale{ 1.0f, 1.0f, 1.0f };
-			ImGuizmo::RecomposeMatrixFromComponents((float*)&translate, (float*)&g_Lighting_DirectionalRot, (float*)&scale, mat);
+			ImGuizmo::RecomposeMatrixFromComponents((float*)&translate, (float*)&Globals::LightingDirectionalRot, (float*)&scale, mat);
 			ImGuizmo::Manipulate((float*)&g_Engine->camera.viewMatrix, (float*)&g_Engine->camera.projectionMatrix, ImGuizmo::ROTATE, ImGuizmo::LOCAL, (float*)&mat);
-			ImGuizmo::DecomposeMatrixToComponents(mat, (float*)&translate, (float*)&g_Lighting_DirectionalRot, (float*)&scale);
+			ImGuizmo::DecomposeMatrixToComponents(mat, (float*)&translate, (float*)&Globals::LightingDirectionalRot, (float*)&scale);
 			ImGuizmo::DrawDirectionArrow();
 		}
 	}

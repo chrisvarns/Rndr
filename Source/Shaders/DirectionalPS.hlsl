@@ -23,11 +23,13 @@ PSOut main(PSIn input)
 {
 	PSOut output;
 
-	float4 diffuse = diffuseTex.Sample(diffuseSampler, input.UV);
-	float4 normal = normalTex.Sample(diffuseSampler, input.UV);
-	output.Color.rgb = clamp(dot(normal, -lightDir), 0, 1);
-	//output.Color = diffuse * lightColor * dot(normal, -lightDir);
+	const float3 diffuse = diffuseTex.Sample(diffuseSampler, input.UV);
+	const float3 normal = normalTex.Sample(diffuseSampler, input.UV);
+
+	const float3 ClampedAngle = clamp(dot(normal, -lightDir), 0, 1);
+	output.Color.rgb = diffuse * lightColor.rgb * ClampedAngle;
 
 	output.Color.a = 1.0f;
+
 	return output;
 }

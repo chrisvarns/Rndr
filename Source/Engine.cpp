@@ -232,8 +232,8 @@ bool Engine::HandleEvents()
 		case SDL_MOUSEMOTION:
 			if (!io.WantCaptureMouse && SDL_GetRelativeMouseMode())
 			{
-				camera.viewAngleH += event.motion.xrel * ImGui::Integration::g_Controls_Camera_Sensitivity;
-				camera.viewAngleV -= event.motion.yrel * ImGui::Integration::g_Controls_Camera_Sensitivity;
+				camera.viewAngleH += event.motion.xrel * Globals::CameraSensitivity;
+				camera.viewAngleV -= event.motion.yrel * Globals::CameraSensitivity;
 			}
 			break;
 		case SDL_KEYDOWN:
@@ -299,12 +299,12 @@ bool Engine::UpdateCamera(float deltaTime)
 	if (SDL_GetRelativeMouseMode())
 	{
 		const uint8_t* keyboardState = SDL_GetKeyboardState(NULL);
-		if (keyboardState[SDL_SCANCODE_W]) camera.viewPos += camera.viewDir * ImGui::Integration::g_Controls_Camera_Speed;
-		if (keyboardState[SDL_SCANCODE_S]) camera.viewPos -= camera.viewDir * ImGui::Integration::g_Controls_Camera_Speed;
-		if (keyboardState[SDL_SCANCODE_A]) camera.viewPos -= camera.rightDir * ImGui::Integration::g_Controls_Camera_Speed;
-		if (keyboardState[SDL_SCANCODE_D]) camera.viewPos += camera.rightDir * ImGui::Integration::g_Controls_Camera_Speed;
-		if (keyboardState[SDL_SCANCODE_E]) camera.viewPos += camera.upDir * ImGui::Integration::g_Controls_Camera_Speed;
-		if (keyboardState[SDL_SCANCODE_Q]) camera.viewPos -= camera.upDir * ImGui::Integration::g_Controls_Camera_Speed;
+		if (keyboardState[SDL_SCANCODE_W]) camera.viewPos += camera.viewDir * Globals::CameraSpeed;
+		if (keyboardState[SDL_SCANCODE_S]) camera.viewPos -= camera.viewDir * Globals::CameraSpeed;
+		if (keyboardState[SDL_SCANCODE_A]) camera.viewPos -= camera.rightDir * Globals::CameraSpeed;
+		if (keyboardState[SDL_SCANCODE_D]) camera.viewPos += camera.rightDir * Globals::CameraSpeed;
+		if (keyboardState[SDL_SCANCODE_E]) camera.viewPos += camera.upDir * Globals::CameraSpeed;
+		if (keyboardState[SDL_SCANCODE_Q]) camera.viewPos -= camera.upDir * Globals::CameraSpeed;
 	}
 
 	camera.viewMatrix = glm::lookAt(camera.viewPos, camera.viewPos + camera.viewDir, camera.upDir);
@@ -344,11 +344,8 @@ bool Engine::Render()
 	}
 
 	rhi.BeginLightingPass();
-	using namespace ImGui::Integration;
-	//glm::vec3 ambient{ g_Lighting_AmbientCol[0], g_Lighting_AmbientCol[1], g_Lighting_AmbientCol[2] };
-	rhi.DrawAmbient(g_Lighting_AmbientCol);
-
-	rhi.DrawDirectionalLight(g_Lighting_DirectionalCol, g_Lighting_DirectionalRot);
+	rhi.DrawAmbient(Globals::LightingAmbientColor);
+	rhi.DrawDirectionalLight(Globals::LightingDirectionalColor, Globals::LightingDirectionalRot);
 
 	ImGui::Integration::RenderMenus();
 	ImGui::Render();
