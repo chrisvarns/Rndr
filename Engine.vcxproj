@@ -126,7 +126,7 @@
       </ShaderType>
       <FileType>Document</FileType>
     </None>
-    <None Include="Source\Shaders\PS.hlsl">
+    <None Include="Source\Shaders\GeometryPS.hlsl">
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
       <TreatWarningAsError Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</TreatWarningAsError>
@@ -151,7 +151,7 @@
       </ShaderType>
       <FileType>Document</FileType>
     </None>
-    <None Include="Source\Shaders\VS.hlsl">
+    <None Include="Source\Shaders\GeometryVS.hlsl">
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">

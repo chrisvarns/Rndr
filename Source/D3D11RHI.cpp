@@ -491,7 +491,7 @@ void D3D11RHI::LoadVertexShaders()
 		{ "TEXCOORD",	0,	DXGI_FORMAT_R32G32_FLOAT,	1,	0,	D3D11_INPUT_PER_VERTEX_DATA,	0 }
 	};
 
-	LoadVertexShader("VS", _solidColorShader, pos3norm3tex3Layout);
+	LoadVertexShader("GeometryVS", _solidColorShader, pos3norm3tex3Layout);
 	LoadVertexShader("ResolveVS", _resolveShader, pos2tex2Layout);
 	LoadVertexShader("AmbientVS", _ambientShader, pos2tex2Layout);
 	LoadVertexShader("DirectionalVS", _directionalShader, pos2tex2Layout);
@@ -514,7 +514,7 @@ void D3D11RHI::LoadPixelShader(const std::string& name, GPUShader& shader) {
 
 void D3D11RHI::LoadPixelShaders()
 {
-	LoadPixelShader("PS", _solidColorShader);
+	LoadPixelShader("GeometryPS", _solidColorShader);
 	LoadPixelShader("ResolvePS", _resolveShader);
 	LoadPixelShader("AmbientPS", _ambientShader);
 	LoadPixelShader("DirectionalPS", _directionalShader);

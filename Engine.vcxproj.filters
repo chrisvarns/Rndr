@@ -125,13 +125,11 @@
   <ItemGroup>
     <None Include="Source\Shaders\AmbientPS.hlsl" />
     <None Include="Source\Shaders\AmbientVS.hlsl" />
-    <None Include="Source\Shaders\PS.hlsl" />
     <None Include="Source\Shaders\ResolvePS.hlsl" />
     <None Include="Source\Shaders\ResolveVS.hlsl" />
-    <None Include="Source\Shaders\VS.hlsl" />
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="Source\Shaders\DirectionalPS.hlsl" />
-    <FxCompile Include="Source\Shaders\DirectionalVS.hlsl" />
+    <None Include="Source\Shaders\DirectionalPS.hlsl" />
+    <None Include="Source\Shaders\DirectionalVS.hlsl" />
+    <None Include="Source\Shaders\GeometryPS.hlsl" />
+    <None Include="Source\Shaders\GeometryVS.hlsl" />
   </ItemGroup>
 </Project>
