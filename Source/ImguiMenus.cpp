@@ -46,7 +46,7 @@ void RenderLightingWindow(bool* pOpen) {
 
 		ImGui::Text("Directional Light");
 		ImGui::ColorEdit3("Directional Color", (float*)&g_Lighting_DirectionalCol);
-		ImGui::InputFloat3("Directional Dir", (float*)&g_Lighting_DirectionalRot, 2);
+		ImGui::SliderFloat3("Directional Dir", (float*)&g_Lighting_DirectionalRot, 0.f, 360.f);
 		ImGui::SameLine();
 		ImVec4 buttonCol = { 1.0f, 0.0f, 0.0f, 1.0f };
 		if (ImGui::ColorButton("DirectionalDirButton", buttonCol)) {

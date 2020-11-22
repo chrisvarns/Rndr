@@ -1,1 +1,1 @@
-scene=C:\git\Rndr\Meshes\Sponza\sponza.obj
+scene=Meshes\Sponza\sponza.obj

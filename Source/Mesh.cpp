@@ -63,7 +63,7 @@ SharedDeletePtr<Mesh> Mesh::LoadMesh(const aiMesh& aimesh, const aiScene& aiscen
         aiString texPath;
         auto airet = material.GetTexture(aiTextureType_DIFFUSE, 0, &texPath, NULL, NULL, NULL, NULL, NULL);
         assert(airet == aiReturn_SUCCESS);
-        auto absoluteTexturePath = FileUtils::Combine(g_Engine->sceneAssetsBasePath, texPath.C_Str());
+        auto absoluteTexturePath = FileUtils::Combine(g_Engine->SceneAssetsBaseDir, texPath.C_Str());
         mesh->diffuseTexture = g_Engine->textureMap.GetTexture2DFromPath(absoluteTexturePath);
     }
     else

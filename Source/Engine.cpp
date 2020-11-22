@@ -27,7 +27,7 @@
 #include "FileUtils.h"
 #include "Mesh.h"
 
-using namespace std;
+namespace fs = std::experimental::filesystem;
 
 Engine* g_Engine = nullptr;
 
@@ -50,8 +50,7 @@ RenderMode& operator++(RenderMode& rm) {
 }
 
 Engine::Engine(int argc, char** argv)
-	: m_NumCmdLineArgs(argc)
-	, m_CmdLineArgs(argv)
+	: CommandLineArgs(argv+1, argv+argc)
     , window({1280, 720})
 	, m_RenderMode(RenderMode::Albedo)
 {
@@ -65,7 +64,7 @@ Engine::~Engine()
 	ImGui::DestroyContext();
 }
 
-void Engine::ParseArg(const string& key, const string& value)
+void Engine::ParseArg(const std::string& key, const std::string& value)
 {
     if (key == "xres")
     {
@@ -77,8 +76,8 @@ void Engine::ParseArg(const string& key, const string& value)
     }
     else if (key == "scene")
     {
-        scenePath = value;
-        sceneAssetsBasePath = FileUtils::GetParentDirectory(scenePath);
+        ScenePath = (fs::path(ProjectDir) / value).string();
+        SceneAssetsBaseDir = FileUtils::GetParentDirectory(ScenePath);
     }
     else
     {
@@ -89,30 +88,31 @@ void Engine::ParseArg(const string& key, const string& value)
 
 void Engine::ParseArgs()
 {
-    // First read the config file
-    auto configFilename = experimental::filesystem::absolute(string(SDL_GetBasePath()) + "../../../../config.txt");
-    if (experimental::filesystem::exists(configFilename))
+	ProjectDir = fs::canonical(std::string(SDL_GetBasePath()) + "../../../../").string();
+
+	fs::path ConfigFilename = fs::path(ProjectDir) / "config.txt";
+
+    if (fs::exists(ConfigFilename))
     {
-        auto fileData = FileUtils::LoadFileAbsolute(configFilename.string());
-        string config = string(fileData.begin(), fileData.end());
-        stringstream ss(config);
-        string key;
+        auto fileData = FileUtils::LoadFileAbsolute(ConfigFilename.string());
+        std::string config = std::string(fileData.begin(), fileData.end());
+        std::stringstream ss(config);
+        std::string key;
         while (getline(ss, key, '='))
         {
-            string value;
+            std::string value;
             assert(getline(ss, value));
             ParseArg(key, value);
         }
     }
 
     // Then parse cmd line args
-	for (int i = 1; i < m_NumCmdLineArgs; ++i)
+	for (const std::string& CommandLineArg : CommandLineArgs)
 	{
-		string cmdLineArg = m_CmdLineArgs[i];
-        stringstream ss(cmdLineArg);
+		std::stringstream ss(CommandLineArg);
 		//split the string
-        string key;
-        string value;
+		std::string key;
+		std::string value;
         getline(ss, key, '=');
         getline(ss, value);
 
@@ -259,7 +259,7 @@ bool Engine::LoadContent()
 {
 	// Load the asset with assimp
 	Assimp::Importer assimp;
-	const aiScene* pScene = assimp.ReadFile(scenePath,
+	const aiScene* pScene = assimp.ReadFile(ScenePath,
 		(aiProcess_ConvertToLeftHanded	// Convert to CW for DirectX.
 		| aiProcessPreset_TargetRealtime_MaxQuality)
 	);

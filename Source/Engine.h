@@ -60,10 +60,11 @@ public:
     void HandleWindowEvent(const SDL_Event& event);
     void UpdateProjectionMatrix();
 
-	int				m_NumCmdLineArgs;
-	char**			m_CmdLineArgs;
-	std::string		scenePath;
-    std::string     sceneAssetsBasePath;
+	std::vector<char*> CommandLineArgs;
+
+	std::string	ScenePath;
+    std::string SceneAssetsBaseDir;
+	std::string ProjectDir;
 
     Window          window;
 
